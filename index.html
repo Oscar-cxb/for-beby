@@ -180,6 +180,19 @@ nav button{background:none;border:0;padding:6px 0;cursor:pointer;color:var(--sof
 nav button span{font-size:22px;line-height:1.1}
 nav button[aria-current="page"]{color:var(--ink)}
 
+
+/* ============ wandering buddy ============ */
+#buddy{position:fixed;left:0;top:0;width:54px;height:74px;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
+#buddy .b-in{width:100%;height:100%;transform-origin:50% 90%}
+#buddy .b-in.walk{animation:waddle .55s ease-in-out infinite}
+#buddy .b-in.hop{animation:hop .5s ease-out}
+#buddy svg{width:100%;height:100%;display:block;filter:drop-shadow(0 4px 4px rgba(40,30,60,.25));transition:transform .2s}
+#buddy.left svg{transform:scaleX(-1)}
+@keyframes waddle{0%,100%{transform:rotate(-7deg) translateY(0)}50%{transform:rotate(7deg) translateY(-4px)}}
+@keyframes hop{0%{transform:translateY(0)}40%{transform:translateY(-22px) rotate(-8deg)}70%{transform:translateY(0) scaleY(.9)}100%{transform:none}}
+.b-say{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:4px 10px;font-family:var(--hand);font-size:22px;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.b-say.on{opacity:1}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -244,6 +257,34 @@ nav button[aria-current="page"]{color:var(--ink)}
     <div class="letters" id="letterList"></div>
   </section>
 </main>
+
+<div id="buddy" hidden aria-label="Little buddy" role="button" tabindex="0">
+  <div class="b-say" id="bSay"></div>
+  <div class="b-in" id="bIn">
+  <svg viewBox="0 0 60 82" aria-hidden="true">
+    <!-- threads -->
+    <g stroke="#e6dcc4" stroke-width="1" stroke-linecap="round">
+      <path d="M22 72 l-2 8 M26 73 l-1 8 M31 73 l1 7 M36 72 l2 8"/>
+    </g>
+    <!-- floppy cloth body -->
+    <path d="M17 46 C10 52 7 62 9 70 C16 75 44 75 51 70 C53 61 49 52 43 46 Z" fill="#e8dfca" stroke="#cbbfa5" stroke-width="1"/>
+    <path d="M18 56 C24 60 34 60 42 55 M14 66 C22 69 38 69 47 65" fill="none" stroke="#d3c8ae" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- knit scarf -->
+    <path d="M15 44 C20 40 40 40 45 44 C46 49 40 51 30 51 C20 51 14 49 15 44 Z" fill="#9ea6ab"/>
+    <path d="M19 45 v3 M23 44 v4 M27 44 v4 M31 44 v4 M35 44 v4 M39 44 v4 M42 45 v3" stroke="#8a9398" stroke-width="1" stroke-linecap="round"/>
+    <!-- head -->
+    <ellipse cx="30" cy="24" rx="19" ry="19" fill="#efe7d5" stroke="#d8ccb2" stroke-width="1"/>
+    <path d="M14 20 C16 12 22 7 29 6" fill="none" stroke="#fff8ea" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+    <!-- drawn eyes -->
+    <circle cx="22.5" cy="24" r="6" fill="none" stroke="#3e3f48" stroke-width="2.1"/>
+    <circle cx="37.5" cy="24" r="6" fill="none" stroke="#3e3f48" stroke-width="2.1"/>
+    <circle cx="22" cy="24.5" r="2.4" fill="#4a4b55"/>
+    <circle cx="37" cy="24.5" r="2.4" fill="#4a4b55"/>
+    <!-- little mouth -->
+    <path d="M27 34 q3 2 6 0" fill="none" stroke="#4a4b55" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>
+  </div>
+</div>
 
 <button id="fab" hidden></button>
 
@@ -341,6 +382,7 @@ onAuthStateChanged(auth, user => {
     if(!g.hidden && !$("#gateForm").hidden){ g.classList.add("leaving"); setTimeout(()=>{ g.hidden=true; g.classList.remove("leaving"); },900); }
     else g.hidden = true;
     $("#fab").hidden = false;
+    if(buddy.hidden) bStart();
     startListening();
     renderHome();
   }else{
@@ -654,6 +696,46 @@ function openForm(kind){
     }
   });
 }
+
+
+/* ============ wandering buddy ============ */
+const buddy = $("#buddy"), bIn = $("#bIn"), bSay = $("#bSay");
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let bx = 24, by = 0, bTimer = null;
+function bPlace(x, y, secs){
+  buddy.style.transition = secs ? `transform ${secs}s linear` : "none";
+  buddy.style.transform = `translate(${x}px, ${y}px)`;
+}
+function bLimits(){ return { minY: 70, maxX: Math.max(10, innerWidth - 64), maxY: Math.max(90, innerHeight - 200) }; }
+function bWander(){
+  clearTimeout(bTimer);
+  const L = bLimits();
+  const nx = 8 + Math.random() * (L.maxX - 8), ny = L.minY + Math.random() * (L.maxY - L.minY);
+  const secs = Math.max(1.2, Math.hypot(nx - bx, ny - by) / 38);
+  buddy.classList.toggle("left", nx < bx);
+  bIn.classList.add("walk");
+  bPlace(nx, ny, secs); bx = nx; by = ny;
+  bTimer = setTimeout(()=>{ bIn.classList.remove("walk"); bTimer = setTimeout(bWander, 1500 + Math.random()*3500); }, secs*1000);
+}
+function bStart(){
+  buddy.hidden = false;
+  by = bLimits().maxY; bPlace(bx, by, 0);
+  if(!still) bTimer = setTimeout(bWander, 1200);
+}
+const lines = ["💛", "hi!", "miss you", "boop", "hehe", "come back soon"];
+function bPoke(){
+  bIn.classList.remove("walk","hop"); void bIn.offsetWidth; bIn.classList.add("hop");
+  bSay.textContent = lines[Math.floor(Math.random()*lines.length)];
+  bSay.classList.add("on");
+  const L = bLimits();
+  const cur = new DOMMatrixReadOnly(getComputedStyle(buddy).transform);
+  bx = Math.min(L.maxX, Math.max(8, cur.m41 || bx)); by = cur.m42 || by;
+  clearTimeout(bTimer); bPlace(bx, by, 0);
+  setTimeout(()=>{ bSay.classList.remove("on"); bIn.classList.remove("hop"); if(!still) bTimer = setTimeout(bWander, 1200); }, 1400);
+}
+buddy.addEventListener("click", bPoke);
+buddy.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); bPoke(); }});
+addEventListener("resize", ()=>{ const L = bLimits(); bx = Math.min(bx, L.maxX); by = Math.min(Math.max(by, L.minY), L.maxY); bPlace(bx, by, 0); });
 
 /* ============ add button + tabs ============ */
 let tab = "home";
