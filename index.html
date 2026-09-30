@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>for you</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💌</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff6f1; --ink:#3b2a4a; --soft:#806a8e; --card:#ffffff; --line:#f0dfd8;
+  --blush:#ffc4b0; --lav:#c9b8f0; --honey:#e3a93f;
+  --night:#1b1938; --night2:#2f2a60;
+  --hand:"Nanum Pen Script","Segoe Print","Comic Sans MS",cursive;
+  --ui:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16142d; --ink:#f4eeff; --soft:#b4a8d2; --card:#221f45; --line:#332e5f;
+    --blush:#ffae98; --lav:#a996e6; --honey:#f2c46b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16142d; --ink:#f4eeff; --soft:#b4a8d2; --card:#221f45; --line:#332e5f;
+  --blush:#ffae98; --lav:#a996e6; --honey:#f2c46b;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+img{max-width:100%;display:block}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-radius:8px}
+.hand{font-family:var(--hand);font-weight:400;line-height:1.1}
+[hidden]{display:none!important}
+
+/* stars */
+.stars{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.7;animation:tw 4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.2}}
+
+/* gate */
+#gate{position:fixed;inset:0;z-index:60;background:radial-gradient(120% 80% at 50% 100%,var(--night2),var(--night) 70%);color:#f4eeff;display:grid;place-items:center;padding:24px;transition:opacity .9s ease,filter .9s ease}
+#gate.leaving{opacity:0;filter:brightness(2.2)}
+.gate-box{position:relative;text-align:center;max-width:320px;width:100%}
+.gate-box h1{font-size:52px;margin:0 0 6px}
+.gate-box p{margin:0 0 22px;color:#cfc4ec}
+.gate-box input{width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid #5a5296;background:rgba(255,255,255,.08);color:#fff;font-size:18px;text-align:center}
+.gate-box input::placeholder{color:#9f95c7}
+.gate-box button{margin-top:12px;width:100%;padding:14px;border:0;border-radius:14px;background:#f2c46b;color:#2a2150;font-weight:700;font-size:17px;cursor:pointer}
+.gate-box button:disabled{opacity:.6}
+.gate-err{min-height:24px;margin-top:10px;color:#ffb3a0;font-size:15px}
+
+/* layout */
+main{max-width:520px;margin:0 auto;padding:0 20px 150px}
+section{display:none}
+section.on{display:block}
+.pg-title{font-size:44px;margin:28px 0 4px}
+.pg-sub{color:var(--soft);margin:0 0 22px}
+.empty{text-align:center;color:var(--soft);padding:36px 12px;border:1.5px dashed var(--line);border-radius:20px}
+.by{font-size:13px;color:var(--soft);font-weight:600}
+
+/* home */
+.sky{position:relative;margin:16px -20px 0;height:300px;overflow:hidden;border-radius:0 0 36px 36px}
+.sky.day{background:linear-gradient(#ffd9c7,#ffeede 55%,var(--bg))}
+.sky.night{background:linear-gradient(var(--night),var(--night2))}
+.orb{position:absolute;right:34px;top:40px;width:64px;height:64px;border-radius:50%}
+.sky.day .orb{background:#ffbf6b;box-shadow:0 0 60px 18px rgba(255,191,107,.55)}
+.sky.night .orb{background:#fff4d6;box-shadow:0 0 40px 10px rgba(255,244,214,.3)}
+.sky.night .orb::after{content:"";position:absolute;inset:-4px -4px 10px 14px;border-radius:50%;background:var(--night)}
+.sky-text{position:absolute;left:24px;bottom:26px;right:24px}
+.sky-text .hi{font-size:54px;margin:0}
+.sky.night .sky-text{color:#f4eeff}
+.sky.day .sky-text{color:#3b2a4a}
+.sky-text small{font-size:15px;opacity:.8}
+.count{margin:28px 0 4px;font-size:19px}
+.count b{font-family:var(--hand);font-weight:400;font-size:58px;color:var(--honey);line-height:.9;display:block}
+.linkish{background:none;border:0;padding:0;color:var(--soft);text-decoration:underline;cursor:pointer;font-size:15px}
+.note{background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:20px 22px;margin-top:22px}
+.note .hand{font-size:27px;margin:0;white-space:pre-line}
+.note .sign{text-align:right;margin-top:8px}
+.logout{display:block;margin:40px auto 0}
+
+/* us toggle */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:4px;margin:10px 0 18px}
+.seg button{border:0;background:none;padding:10px;border-radius:999px;font-weight:700;color:var(--soft);cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--blush);color:#3b2a4a}
+
+/* timeline */
+.tl{position:relative;padding-left:26px}
+.tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;border-left:2px dashed var(--lav)}
+.mem{position:relative;margin-bottom:34px}
+.mem::before{content:"";position:absolute;left:-24px;top:8px;width:14px;height:14px;border-radius:50%;background:var(--blush);border:3px solid var(--bg)}
+.mem .date{font-size:14px;color:var(--soft);font-weight:600}
+.polaroid{display:block;width:100%;text-align:left;border:0;cursor:pointer;background:#fffdf9;padding:10px 10px 14px;border-radius:6px;box-shadow:0 8px 22px -10px rgba(59,42,74,.45);margin-top:8px;color:#3b2a4a}
+.mem:nth-child(odd) .polaroid{transform:rotate(-1.4deg)}
+.mem:nth-child(even) .polaroid{transform:rotate(1.2deg)}
+.photo{aspect-ratio:4/3;border-radius:3px;background:linear-gradient(135deg,#ffd6c8,#dcd0f7);display:grid;place-items:center;font-size:40px;overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:cover}
+.polaroid .hand{font-size:28px;margin:10px 4px 0}
+.polaroid p{margin:4px 4px 0;font-size:15px;color:#6b5878}
+.polaroid .by{color:#8a7896;margin:6px 4px 0}
+
+/* gallery */
+.gal-title{font-size:34px;margin:0 0 14px}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gal button{border:0;padding:0;aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;background:var(--line)}
+.gal button img{width:100%;height:100%;object-fit:cover}
+#lb{position:fixed;inset:0;z-index:40;background:rgba(18,15,38,.96);color:#f4eeff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.lb-img{width:100%;max-width:560px;flex:1;display:grid;place-items:center;min-height:0}
+.lb-img img{max-height:68vh;width:auto;max-width:100%;border-radius:10px;object-fit:contain}
+.lb-cap{font-size:30px;margin:14px 0 2px;text-align:center;min-height:30px}
+.lb-by{font-size:13px;color:#b4a8d2;margin-bottom:8px}
+.lb-nav{display:flex;align-items:center;gap:24px;font-size:15px;color:#b4a8d2}
+.lb-nav button,.lb-x{background:rgba(255,255,255,.1);border:0;color:#fff;width:48px;height:48px;border-radius:50%;font-size:26px;cursor:pointer}
+.lb-x{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px;font-size:18px}
+.lb-del{background:none;border:0;color:#ffb3a0;text-decoration:underline;cursor:pointer;font-size:14px;margin-top:10px}
+
+/* constellation */
+.cons{position:relative;margin:0 -20px;background:radial-gradient(90% 70% at 50% 40%,var(--night2),var(--night));border-radius:32px;overflow:hidden;aspect-ratio:3/4;max-height:70vh;width:calc(100% + 40px)}
+.cons svg{position:absolute;inset:0;width:100%;height:100%}
+.cons .path{fill:none;stroke:#cfc4ec;stroke-width:.35;stroke-dasharray:1.2 1.2;opacity:.8}
+.star{cursor:pointer}
+.star .glow{fill:#f2c46b;opacity:.25}
+.star .core{fill:#fff4d6}
+.star text{font-family:var(--hand);font-size:5px;fill:#f4eeff}
+.star:focus{outline:none}
+.star:focus-visible .glow{opacity:.7}
+.star.seen .glow{fill:#ffae98}
+.cons-hint{position:absolute;left:0;right:0;bottom:14px;text-align:center;color:#b4a8d2;font-size:14px}
+
+/* letters */
+.letters{display:grid;gap:14px}
+.env{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px;cursor:pointer}
+.env .flap{flex:none;width:52px;height:38px;border-radius:6px;background:var(--blush);position:relative;overflow:hidden}
+.env .flap::before{content:"";position:absolute;left:0;right:0;top:0;border-left:26px solid transparent;border-right:26px solid transparent;border-top:20px solid rgba(255,255,255,.55)}
+.env.opened .flap{background:var(--lav)}
+.env .hand{font-size:28px}
+.env small{display:block;color:var(--soft);font-size:14px}
+
+/* sheet */
+#veil{position:fixed;inset:0;background:rgba(20,16,40,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
+#veil.on{opacity:1;pointer-events:auto}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;max-width:560px;margin:0 auto;background:var(--card);border-radius:28px 28px 0 0;padding:14px 24px calc(28px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow-y:auto}
+#sheet.on{transform:none}
+.grab{width:44px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 18px}
+#sheet h2{font-family:var(--hand);font-weight:400;font-size:40px;margin:0 0 2px;line-height:1}
+#sheet .meta{color:var(--soft);font-size:14px;margin-bottom:14px}
+#sheet .body{font-family:var(--hand);font-size:27px;line-height:1.25;white-space:pre-line}
+#sheet .photo{margin-bottom:16px;border-radius:14px;aspect-ratio:auto;max-height:50vh}
+#sheet .photo img{max-height:50vh;object-fit:contain;background:#000}
+.sheet-actions{display:flex;justify-content:center;gap:12px;margin-top:22px;flex-wrap:wrap}
+.btn{padding:12px 24px;border-radius:999px;border:1.5px solid var(--line);background:transparent;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.danger{color:#d9534f;border-color:transparent;text-decoration:underline;font-weight:600}
+.btn:disabled{opacity:.55}
+
+/* forms */
+.form label{display:block;font-weight:700;font-size:15px;margin:14px 0 6px}
+.form label small{font-weight:400;color:var(--soft)}
+.form input[type=text],.form input[type=date],.form textarea{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);font-size:16px}
+.form textarea{min-height:130px;resize:vertical;font-family:var(--hand);font-size:24px;line-height:1.2}
+.form input[type=file]{width:100%;font-size:15px}
+.form .prefix{display:flex;align-items:center;gap:8px}
+.form .prefix span{font-family:var(--hand);font-size:26px;white-space:nowrap}
+.form-err{color:#d9534f;font-size:15px;min-height:22px;margin-top:10px}
+
+/* add button */
+#fab{position:fixed;z-index:25;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));padding:13px 22px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-weight:700;box-shadow:0 10px 24px -10px rgba(20,16,40,.6);cursor:pointer;white-space:nowrap}
+
+/* tab bar */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1.5px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+nav .row{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav button{background:none;border:0;padding:6px 0;cursor:pointer;color:var(--soft);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px}
+nav button span{font-size:22px;line-height:1.1}
+nav button[aria-current="page"]{color:var(--ink)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="stars" id="gateStars"></div>
+  <form class="gate-box" id="gateForm" autocomplete="off" hidden>
+    <h1 class="hand">hi you.</h1>
+    <p>What do I always call you?</p>
+    <input id="gateInput" type="text" aria-label="Password" placeholder="type it here" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button type="submit" id="gateBtn">Come in</button>
+    <div class="gate-err" id="gateErr" role="alert"></div>
+  </form>
+</div>
+
+<main>
+  <section id="home" class="on">
+    <div class="sky" id="sky">
+      <div class="stars" id="skyStars"></div>
+      <div class="orb"></div>
+      <div class="sky-text">
+        <p class="hand hi" id="hello"></p>
+        <small id="skyLine"></small>
+      </div>
+    </div>
+    <p class="count" id="count"></p>
+    <button class="linkish" id="setReunion">Set the day we see each other again</button>
+    <div id="noteBox"></div>
+    <button class="linkish logout" id="logout">Log out</button>
+  </section>
+
+  <section id="us">
+    <h2 class="hand pg-title">us, so far</h2>
+    <div class="seg" role="tablist">
+      <button role="tab" data-view="story" aria-selected="true">Our story</button>
+      <button role="tab" data-view="pics" aria-selected="false">All pics</button>
+    </div>
+    <div id="storyView">
+      <p class="pg-sub">Oldest at the top. Scroll down.</p>
+      <div class="tl" id="timeline"></div>
+    </div>
+    <div id="picsView" hidden>
+      <p class="hand gal-title">captured memories with beby</p>
+      <div class="gal" id="gallery"></div>
+    </div>
+  </section>
+
+  <section id="places">
+    <h2 class="hand pg-title">our places</h2>
+    <p class="pg-sub">Every star is somewhere we went. Tap one.</p>
+    <div class="cons">
+      <div class="stars" id="consStars"></div>
+      <svg viewBox="0 0 100 133" id="consSvg" aria-label="Map of our places"></svg>
+      <div class="cons-hint" id="consHint"></div>
+    </div>
+  </section>
+
+  <section id="letters">
+    <h2 class="hand pg-title">open when…</h2>
+    <p class="pg-sub">Letters for each other. Open one when you need it.</p>
+    <div class="letters" id="letterList"></div>
+  </section>
+</main>
+
+<button id="fab" hidden></button>
+
+<div id="lb" role="dialog" aria-modal="true" aria-label="Photo" hidden>
+  <button class="lb-x" id="lbClose" aria-label="Close">✕</button>
+  <div class="lb-img" id="lbImg"></div>
+  <p class="hand lb-cap" id="lbCap"></p>
+  <div class="lb-by" id="lbBy"></div>
+  <div class="lb-nav">
+    <button id="lbPrev" aria-label="Previous photo">‹</button>
+    <span id="lbCount"></span>
+    <button id="lbNext" aria-label="Next photo">›</button>
+  </div>
+  <button class="lb-del" id="lbDel" hidden>Delete this photo</button>
+</div>
+
+<div id="veil"></div>
+<div id="sheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div id="sheetContent"></div>
+</div>
+
+<nav aria-label="Sections">
+  <div class="row">
+    <button data-tab="home" aria-current="page"><span>🏠</span>Home</button>
+    <button data-tab="us"><span>📷</span>Us</button>
+    <button data-tab="places"><span>✨</span>Places</button>
+    <button data-tab="letters"><span>💌</span>Letters</button>
+  </div>
+</nav>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+/* ============ settings ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyB7TrDr-KBewu8hyMe1vMvaHNOSp47_kaw",
+  authDomain: "littlebeby-99d8a.firebaseapp.com",
+  projectId: "littlebeby-99d8a",
+  storageBucket: "littlebeby-99d8a.firebasestorage.app",
+  messagingSenderId: "937679612636",
+  appId: "1:937679612636:web:f94907158c78107f092219"
+};
+const HER = "beby";                 // her login word
+const MY_NAME = "Oscar";            // how your posts are signed
+const GOODBYE = "2026-09-30T08:00:00+08:00";
+/* ================================== */
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeImg = s => typeof s === "string" && s.startsWith("data:image/") ? s : "";
+const local = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const ms = d => d?.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now();
+const fmtDate = s => { if(!s) return ""; const d = new Date(s + "T00:00:00"); return isNaN(d) ? s : d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); };
+
+let me = null;
+const S = { memories:[], photos:[], places:[], letters:[], home:{} };
+let unsubs = [];
+
+function sprinkle(el, n){
+  for(let i=0;i<n;i++){
+    const s=document.createElement("i");
+    s.style.left=Math.random()*100+"%"; s.style.top=Math.random()*100+"%";
+    s.style.animationDelay=(Math.random()*4)+"s";
+    if(Math.random()<.2) s.style.width=s.style.height="3px";
+    el.appendChild(s);
+  }
+}
+sprinkle($("#gateStars"),70);
+sprinkle($("#consStars"),60);
+
+/* ============ login ============ */
+function nameFor(email){ return (email||"").split("@")[0] === HER ? HER : MY_NAME; }
+const who = d => d.by === me?.uid ? "you" : (d.byName || "someone");
+
+onAuthStateChanged(auth, user => {
+  unsubs.forEach(u=>u()); unsubs = [];
+  if(user){
+    me = { uid:user.uid, name:nameFor(user.email) };
+    const g=$("#gate");
+    if(!g.hidden && !$("#gateForm").hidden){ g.classList.add("leaving"); setTimeout(()=>{ g.hidden=true; g.classList.remove("leaving"); },900); }
+    else g.hidden = true;
+    $("#fab").hidden = false;
+    startListening();
+    renderHome();
+  }else{
+    me = null;
+    $("#gate").hidden = false;
+    $("#gateForm").hidden = false;
+    $("#fab").hidden = true;
+  }
+});
+
+$("#gateForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const word = $("#gateInput").value.trim().toLowerCase().replace(/\s+/g,"");
+  if(!word) return;
+  $("#gateBtn").disabled = true; $("#gateErr").textContent = "";
+  try{
+    await signInWithEmailAndPassword(auth, `${word}@forbeby.app`, `${word}-forever`);
+  }catch(err){
+    const c = err.code || "";
+    $("#gateErr").textContent =
+      c.includes("network") ? "Couldn't connect. Check your internet and try again." :
+      c.includes("too-many") ? "Too many tries. Wait a minute, then try again." :
+      "Not quite. Check the hint and try again.";
+  }
+  $("#gateBtn").disabled = false;
+});
+$("#logout").addEventListener("click", ()=> signOut(auth));
+
+/* ============ live data ============ */
+function startListening(){
+  for(const c of ["memories","photos","places","letters"]){
+    unsubs.push(onSnapshot(collection(db,c), snap=>{
+      S[c] = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      render[c]();
+    }, err=>console.error(c, err)));
+  }
+  unsubs.push(onSnapshot(doc(db,"meta","home"), snap=>{
+    S.home = snap.exists() ? snap.data() : {};
+    renderHome();
+  }, err=>console.error("home", err)));
+}
+
+/* ============ home ============ */
+const hour = new Date().getHours(), isNight = hour<6 || hour>=19;
+$("#sky").classList.add(isNight?"night":"day");
+if(isNight) sprinkle($("#skyStars"),40);
+
+function renderHome(){
+  if(!me) return;
+  const other = me.name === HER ? MY_NAME : HER;
+  $("#hello").textContent = `hi ${me.name}`;
+  $("#skyLine").textContent = isNight ? "It's night where you are. Sleep well, okay?" : "Hope your day's going okay.";
+  const DAY = 864e5, r = S.home.reunion;
+  if(r && new Date(r+"T00:00:00") > Date.now()){
+    const d = Math.ceil((new Date(r+"T00:00:00") - Date.now())/DAY);
+    $("#count").innerHTML = `<b>${d} ${d===1?"day":"days"}</b>until we see each other again.`;
+    $("#setReunion").textContent = "Change the date";
+  }else{
+    const d = Math.max(0, Math.floor((Date.now() - new Date(GOODBYE))/DAY));
+    $("#count").innerHTML = d===0 ? `<b>today</b>we said see you later at the airport.` : `<b>${d} ${d===1?"day":"days"}</b>since the airport.`;
+    $("#setReunion").textContent = "Set the day we see each other again";
+  }
+  const n = S.home;
+  $("#noteBox").innerHTML = n.note
+    ? `<div class="note"><div class="by">latest note</div><p class="hand">${esc(n.note)}</p><p class="hand sign">– ${esc(n.noteBy===me.uid ? "you" : n.noteByName)}</p></div>`
+    : `<div class="note"><p class="hand">No note yet. Leave one for ${esc(other)}.</p></div>`;
+  updateFab();
+}
+
+/* ============ us ============ */
+let usView = "story";
+document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{
+  usView = b.dataset.view;
+  document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-selected", x===b));
+  $("#storyView").hidden = usView!=="story";
+  $("#picsView").hidden = usView!=="pics";
+  updateFab();
+}));
+
+const render = {
+  memories(){
+    const list = [...S.memories].sort((a,b)=>(a.date||"").localeCompare(b.date||"") || ms(a)-ms(b));
+    $("#timeline").innerHTML = list.length ? list.map(m=>`
+      <div class="mem">
+        <div class="date">${esc(fmtDate(m.date))}</div>
+        <button class="polaroid" data-id="${m.id}">
+          ${safeImg(m.photo) ? `<div class="photo"><img src="${safeImg(m.photo)}" alt=""></div>` : ""}
+          <p class="hand">${esc(m.title)}</p>
+          ${m.text ? `<p>${esc(m.text)}</p>` : ""}
+          <div class="by">added by ${esc(who(m))}</div>
+        </button>
+      </div>`).join("")
+      : `<div class="empty">No memories yet. Tap “Add memory” to start your story.</div>`;
+    $("#timeline").classList.toggle("tl", list.length>0);
+  },
+  photos(){
+    const list = [...S.photos].sort((a,b)=>ms(b)-ms(a));
+    S.photoList = list;
+    $("#gallery").innerHTML = list.map((p,i)=>`<button data-i="${i}" aria-label="Open photo ${i+1}"><img src="${safeImg(p.photo)}" alt="" loading="lazy"></button>`).join("");
+    if(!list.length) $("#gallery").innerHTML = `<div class="empty" style="grid-column:1/-1">No pics yet. Tap “Add pics”.</div>`;
+    if(!$("#lb").hidden) showLb(lbI);
+  },
+  places(){
+    const list = [...S.places].sort((a,b)=>(a.date||"").localeCompare(b.date||"") || ms(a)-ms(b));
+    S.placeList = list;
+    const seen = new Set(local.get("seenPlaces")||[]);
+    const pts = list.map(p=>`${p.x},${p.y}`).join(" ");
+    $("#consSvg").innerHTML = (list.length>1 ? `<polyline class="path" points="${pts}"/>` : "") + list.map((p,i)=>`
+      <g class="star${seen.has(p.id)?" seen":""}" data-i="${i}" role="button" tabindex="0" aria-label="${esc(p.name)}">
+        <circle class="glow" cx="${p.x}" cy="${p.y}" r="5"/>
+        <circle class="core" cx="${p.x}" cy="${p.y}" r="1.6"/>
+        <circle cx="${p.x}" cy="${p.y}" r="8" fill="transparent"/>
+        <text x="${p.x}" y="${p.y+9}" text-anchor="middle">${esc(p.name)}</text>
+      </g>`).join("");
+    $("#consHint").textContent = list.length ? `${list.filter(p=>seen.has(p.id)).length} of ${list.length} visited` : "No stars yet. Tap “Add a place”.";
+  },
+  letters(){
+    const list = [...S.letters].sort((a,b)=>ms(a)-ms(b));
+    S.letterList = list;
+    const opened = new Set(local.get("openedLetters")||[]);
+    $("#letterList").innerHTML = list.length ? list.map((l,i)=>{
+      const mine = l.by===me.uid, isOpen = mine || opened.has(l.id);
+      return `<button class="env${isOpen?" opened":""}" data-i="${i}">
+        <span class="flap" aria-hidden="true"></span>
+        <span><span class="hand">open when ${esc(l.when)}</span>
+        <small>${mine ? "You wrote this one" : `From ${esc(l.byName)} · ${opened.has(l.id)?"Opened":"Still sealed"}`}</small></span>
+      </button>`;}).join("")
+      : `<div class="empty">No letters yet. Write the first one.</div>`;
+  }
+};
+
+/* ============ sheet ============ */
+let lastFocus = null;
+function openSheet(html){
+  lastFocus = document.activeElement;
+  $("#sheetContent").innerHTML = html;
+  $("#veil").classList.add("on"); $("#sheet").classList.add("on");
+  const f = $("#sheetContent").querySelector("input,textarea,button"); if(f) f.focus();
+}
+function closeSheet(){
+  $("#veil").classList.remove("on"); $("#sheet").classList.remove("on");
+  if(lastFocus) lastFocus.focus();
+}
+$("#veil").addEventListener("click", closeSheet);
+$("#sheetContent").addEventListener("click", e=>{ if(e.target.closest("[data-close]")) closeSheet(); });
+
+function detail({photo="", title, meta="", body="", item, coll}){
+  const canDel = item && item.by === me.uid;
+  openSheet(`
+    ${safeImg(photo) ? `<div class="photo"><img src="${safeImg(photo)}" alt=""></div>` : ""}
+    <h2>${esc(title)}</h2>
+    ${meta ? `<div class="meta">${esc(meta)}</div>` : ""}
+    <div class="body">${esc(body)}</div>
+    <div class="sheet-actions">
+      <button class="btn" data-close>Close</button>
+      ${canDel ? `<button class="btn danger" id="delBtn">Delete</button>` : ""}
+    </div>`);
+  if(canDel) $("#delBtn").addEventListener("click", async ()=>{
+    if(!confirm("Delete this for both of you?")) return;
+    try{ await deleteDoc(doc(db, coll, item.id)); closeSheet(); }catch(e){ alert("Couldn't delete. Check your internet and try again."); }
+  });
+}
+
+$("#timeline").addEventListener("click", e=>{
+  const b = e.target.closest(".polaroid"); if(!b) return;
+  const m = S.memories.find(x=>x.id===b.dataset.id); if(!m) return;
+  detail({photo:m.photo, title:m.title, meta:`${fmtDate(m.date)} · added by ${who(m)}`, body:m.text, item:m, coll:"memories"});
+});
+
+function openPlace(i){
+  const p = S.placeList[i]; if(!p) return;
+  const seen = new Set(local.get("seenPlaces")||[]); seen.add(p.id); local.set("seenPlaces",[...seen]);
+  render.places();
+  detail({photo:p.photo, title:p.name, meta:`${fmtDate(p.date)} · added by ${who(p)}`, body:p.text, item:p, coll:"places"});
+}
+$("#consSvg").addEventListener("click", e=>{ const g=e.target.closest(".star"); if(g) openPlace(+g.dataset.i); });
+$("#consSvg").addEventListener("keydown", e=>{ const g=e.target.closest(".star"); if(g && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); openPlace(+g.dataset.i); }});
+
+$("#letterList").addEventListener("click", e=>{
+  const b = e.target.closest(".env"); if(!b) return;
+  const l = S.letterList[+b.dataset.i]; if(!l) return;
+  if(l.by !== me.uid){ const o = new Set(local.get("openedLetters")||[]); o.add(l.id); local.set("openedLetters",[...o]); render.letters(); }
+  detail({title:`open when ${l.when}`, meta:`from ${who(l)}`, body:l.text, item:l, coll:"letters"});
+});
+
+/* ============ lightbox ============ */
+let lbI = 0, lbFrom = null;
+function showLb(i){
+  const list = S.photoList||[]; if(!list.length){ closeLb(); return; }
+  lbI = (i + list.length) % list.length; const p = list[lbI];
+  $("#lbImg").innerHTML = `<img src="${safeImg(p.photo)}" alt="">`;
+  $("#lbCap").textContent = p.caption || "";
+  $("#lbBy").textContent = `added by ${who(p)}`;
+  $("#lbCount").textContent = `${lbI+1} / ${list.length}`;
+  $("#lbDel").hidden = p.by !== me.uid;
+}
+function closeLb(){ $("#lb").hidden = true; if(lbFrom) lbFrom.focus(); }
+$("#gallery").addEventListener("click", e=>{ const b=e.target.closest("button[data-i]"); if(!b) return; lbFrom=b; showLb(+b.dataset.i); $("#lb").hidden=false; $("#lbClose").focus(); });
+$("#lbClose").addEventListener("click", closeLb);
+$("#lbPrev").addEventListener("click", ()=>showLb(lbI-1));
+$("#lbNext").addEventListener("click", ()=>showLb(lbI+1));
+$("#lbDel").addEventListener("click", async ()=>{
+  const p = S.photoList[lbI]; if(!p || !confirm("Delete this photo for both of you?")) return;
+  try{ await deleteDoc(doc(db,"photos",p.id)); }catch(e){ alert("Couldn't delete. Check your internet and try again."); }
+});
+let tx = null;
+$("#lb").addEventListener("touchstart", e=>{ tx = e.touches[0].clientX; }, {passive:true});
+$("#lb").addEventListener("touchend", e=>{ if(tx===null) return; const dx = e.changedTouches[0].clientX - tx; if(Math.abs(dx)>50) showLb(lbI + (dx<0?1:-1)); tx=null; });
+document.addEventListener("keydown", e=>{
+  if(!$("#lb").hidden){ if(e.key==="ArrowRight") showLb(lbI+1); if(e.key==="ArrowLeft") showLb(lbI-1); if(e.key==="Escape") closeLb(); return; }
+  if(e.key==="Escape") closeSheet();
+});
+
+/* ============ photo shrinking ============ */
+function shrink(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = ()=>{
+      let max = 1400, q = .82, out = "";
+      for(let tries=0; tries<8; tries++){
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        out = c.toDataURL("image/jpeg", q);
+        if(out.length < 850000) break;
+        q -= .08; max *= .85;
+      }
+      URL.revokeObjectURL(url);
+      out.length < 1000000 ? resolve(out) : reject(new Error("too big"));
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error("unreadable")); };
+    img.src = url;
+  });
+}
+
+/* ============ add forms ============ */
+const today = new Date().toISOString().slice(0,10);
+const FORMS = {
+  memory:{ title:"Add a memory", html:`
+    <label>When <small>(roughly is fine)</small></label><input type="date" name="date" required>
+    <label>What happened</label><input type="text" name="title" maxlength="60" placeholder="Our first date" required>
+    <label>A few words <small>(optional)</small></label><textarea name="text" maxlength="600"></textarea>
+    <label>Photo <small>(optional)</small></label><input type="file" name="photo" accept="image/*">`,
+    async save(f){ return [{coll:"memories", data:{ date:f.elements.date.value, title:f.elements.title.value.trim(), text:f.elements.text.value.trim(), photo: f.elements.photo.files[0] ? await shrink(f.elements.photo.files[0]) : "" }}]; } },
+  pics:{ title:"Add pics", html:`
+    <label>Pick one or more photos</label><input type="file" name="photos" accept="image/*" multiple required>
+    <label>Caption <small>(optional, goes on all of them)</small></label><input type="text" name="caption" maxlength="80">`,
+    async save(f){
+      const cap = f.elements.caption.value.trim(), out = [];
+      for(const file of f.elements.photos.files) out.push({coll:"photos", data:{ photo: await shrink(file), caption:cap }});
+      return out; } },
+  place:{ title:"Add a place", html:`
+    <label>Place name</label><input type="text" name="name" maxlength="24" placeholder="Sunway Pyramid" required>
+    <label>When</label><input type="date" name="date" required>
+    <label>Why it matters <small>(optional)</small></label><textarea name="text" maxlength="600"></textarea>
+    <label>Photo <small>(optional)</small></label><input type="file" name="photo" accept="image/*">`,
+    async save(f){ const {x,y} = freeSpot(); return [{coll:"places", data:{ name:f.elements.name.value.trim(), date:f.elements.date.value, text:f.elements.text.value.trim(), x, y, photo: f.elements.photo.files[0] ? await shrink(f.elements.photo.files[0]) : "" }}]; } },
+  letter:{ title:"Write a letter", html:`
+    <label>Open when…</label><div class="prefix"><span>open when</span><input type="text" name="when" maxlength="40" placeholder="you miss me" required></div>
+    <label>Your letter</label><textarea name="text" maxlength="3000" required></textarea>`,
+    async save(f){ return [{coll:"letters", data:{ when:f.elements.when.value.trim(), text:f.elements.text.value.trim() }}]; } },
+  note:{ title:"Leave a note", html:`
+    <label>It shows on the home page for both of you</label><textarea name="note" maxlength="400" required></textarea>`,
+    async save(f){ return [{home:{ note:f.elements.note.value.trim(), noteBy:me.uid, noteByName:me.name, noteAt:serverTimestamp() }}]; } },
+  reunion:{ title:"When do we meet again?", html:`
+    <label>Pick the date</label><input type="date" name="reunion" min="${today}" required>`,
+    async save(f){ return [{home:{ reunion:f.elements.reunion.value }}]; } }
+};
+
+function freeSpot(){
+  const pts = S.places || [];
+  let best = {x:50,y:66}, bestD = -1;
+  for(let i=0;i<60;i++){
+    const x = Math.round(14 + Math.random()*72), y = Math.round(16 + Math.random()*100);
+    const d = pts.length ? Math.min(...pts.map(p=>Math.hypot(p.x-x, p.y-y))) : 99;
+    if(d > bestD){ best = {x,y}; bestD = d; }
+    if(d > 22) break;
+  }
+  return best;
+}
+
+function openForm(kind){
+  const F = FORMS[kind];
+  openSheet(`<form class="form" id="addForm" novalidate>
+    <h2>${F.title}</h2>${F.html}
+    <div class="form-err" id="formErr" role="alert"></div>
+    <div class="sheet-actions"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary" id="saveBtn">Save</button></div>
+  </form>`);
+  $("#addForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const f = e.target, btn = $("#saveBtn"), errEl = $("#formErr");
+    const missing = [...f.querySelectorAll("[required]")].find(el => el.type==="file" ? !el.files.length : !el.value.trim());
+    if(missing){ errEl.textContent = "Fill in the highlighted bit first."; missing.focus(); return; }
+    btn.disabled = true; btn.textContent = "Saving…"; errEl.textContent = "";
+    try{
+      const items = await F.save(f);
+      for(const it of items){
+        if(it.home) await setDoc(doc(db,"meta","home"), it.home, {merge:true});
+        else await addDoc(collection(db, it.coll), { ...it.data, by:me.uid, byName:me.name, createdAt:serverTimestamp() });
+      }
+      closeSheet();
+    }catch(err){
+      console.error(err);
+      errEl.textContent = err.message==="too big" || err.message==="unreadable"
+        ? "That photo couldn't be used. Try a different one."
+        : "Couldn't save. Check your internet and try again.";
+      btn.disabled = false; btn.textContent = "Save";
+    }
+  });
+}
+
+/* ============ add button + tabs ============ */
+let tab = "home";
+function updateFab(){
+  const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"], letters:["letter","💌 Write a letter"] };
+  const [kind, label] = map[tab];
+  $("#fab").textContent = label; $("#fab").dataset.kind = kind;
+}
+$("#fab").addEventListener("click", ()=> openForm($("#fab").dataset.kind));
+$("#setReunion").addEventListener("click", ()=> openForm("reunion"));
+
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click", ()=>{
+  tab = b.dataset.tab;
+  document.querySelectorAll("nav button").forEach(x=>x.removeAttribute("aria-current"));
+  b.setAttribute("aria-current","page");
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===tab));
+  updateFab(); window.scrollTo(0,0);
+}));
+updateFab();
+</script>
+</body>
+</html>
