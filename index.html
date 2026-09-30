@@ -280,6 +280,29 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 .choice small{display:block;font-weight:400;color:var(--soft)}
 .choice input{margin-top:4px}
 
+/* ============ watch & listen ============ */
+.wl{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px}
+.wl .tick{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--lav);background:none;cursor:pointer;font-size:16px;font-weight:800;color:#3b2a4a}
+.wl.done .tick{background:var(--lav)}
+.wl.done .ttl{text-decoration:line-through;opacity:.65}
+.wl .ic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--blush);display:grid;place-items:center;font-size:20px}
+.wl .bd{flex:1;min-width:0}
+.wl .ttl{font-weight:800;font-size:17px;overflow-wrap:anywhere}
+.wl .type{display:inline-block;font-size:11px;font-weight:700;background:var(--bg);border:1.5px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:4px;vertical-align:2px}
+.wl .art{color:var(--soft);font-size:14px}
+.wl .hand{font-size:22px;margin:4px 0 0;white-space:pre-line}
+.wl small{display:block;color:var(--soft);font-size:13px;margin-top:4px}
+.wl small a{color:inherit}
+.wl .listen{display:inline-block;margin-top:8px;padding:7px 14px;border-radius:999px;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:700;font-size:14px}
+.wl .mini{background:none;border:0;padding:0;color:var(--soft);text-decoration:underline;font-size:13px;cursor:pointer;margin-left:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips label{margin:0}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:block;font-size:15px;font-weight:700;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);cursor:pointer}
+.chips input:checked + span{background:var(--blush);border-color:var(--blush);color:#3b2a4a}
+.chips input:focus-visible + span{outline:3px solid var(--honey)}
+.form input[type=url]{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);font-size:16px}
+
 /* ============ wandering buddy ============ */
 .buddy{position:fixed;left:0;top:0;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .buddy.doll{width:54px;height:74px}
@@ -375,6 +398,23 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
     <p class="hand apart" id="apart"></p>
     <div class="map-wrap"><div id="map"></div><div class="map-msg" id="mapMsg">Loading the map…</div></div>
     <div class="who-cards" id="whoCards"></div>
+  </section>
+
+  <section id="lists">
+    <h2 class="hand pg-title" id="listsTitle">watch together</h2>
+    <div class="seg" role="tablist" id="wseg">
+      <button role="tab" data-wview="watch" aria-selected="true">🍿 To watch</button>
+      <button role="tab" data-wview="songs" aria-selected="false">🎵 Our songs</button>
+    </div>
+    <div id="watchView">
+      <p class="pg-sub">Stuff to watch together on call.</p>
+      <div id="watchList"></div>
+      <details class="past" id="watchedBox" hidden><summary id="watchedSum"></summary><div id="watchedList" style="margin-top:12px"></div></details>
+    </div>
+    <div id="songsView" hidden>
+      <p class="pg-sub">Songs that remind us of each other.</p>
+      <div id="songList"></div>
+    </div>
   </section>
 
   <section id="places">
@@ -540,7 +580,7 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
     <button data-tab="us"><span>📷</span>Us</button>
     <button data-tab="daily"><span>☀️</span>Daily</button>
     <button data-tab="where"><span>📍</span>Where</button>
-    <button data-tab="places"><span>✨</span>Places</button>
+    <button data-tab="lists"><span>🍿</span>Watch</button>
     <button data-tab="letters"><span>💌</span>Letters</button>
   </div>
 </nav>
@@ -584,7 +624,7 @@ const ms = d => d?.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now();
 const fmtDate = s => { if(!s) return ""; const d = new Date(s + "T00:00:00"); return isNaN(d) ? s : d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); };
 
 let me = null;
-const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], locations:[], home:{} };
+const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], locations:[], lists:[], home:{} };
 let unsubs = [];
 
 function sprinkle(el, n){
@@ -613,7 +653,7 @@ onAuthStateChanged(auth, user => {
     $("#fab").hidden = false;
     if(buddies[0].el.hidden) buddies.forEach(b=>b.start());
     startListening();
-    renderHome(); renderThoughts(); renderAnswers(); renderVoices(); renderWhere();
+    renderHome(); renderThoughts(); renderAnswers(); renderVoices(); renderWhere(); renderLists();
   }else{
     me = null;
     $("#gate").hidden = false;
@@ -644,7 +684,7 @@ $("#logout").addEventListener("click", ()=> signOut(auth));
 
 /* ============ live data ============ */
 function startListening(){
-  for(const c of ["memories","photos","places","letters","checkins","answers","voices","locations"]){
+  for(const c of ["memories","photos","places","letters","checkins","answers","voices","locations","lists"]){
     unsubs.push(onSnapshot(collection(db,c), snap=>{
       S[c] = snap.docs.map(d=>({id:d.id, ...d.data()}));
       render[c]();
@@ -1039,6 +1079,64 @@ async function cityFor(lat, lng){
   }catch(e){ return ""; }
 }
 
+/* ============ watch & listen ============ */
+let wview = "watch";
+document.querySelectorAll("#wseg button").forEach(b=>b.addEventListener("click",()=>{
+  wview = b.dataset.wview;
+  document.querySelectorAll("#wseg button").forEach(x=>x.setAttribute("aria-selected", x===b));
+  $("#watchView").hidden = wview!=="watch";
+  $("#songsView").hidden = wview!=="songs";
+  $("#listsTitle").textContent = wview==="songs" ? "our songs" : "watch together";
+  updateFab();
+}));
+const safeLink = u => typeof u === "string" && /^https?:\/\//i.test(u.trim()) ? u.trim() : "";
+const shortDate = t => t?.toMillis ? new Date(t.toMillis()).toLocaleDateString(undefined,{day:"numeric",month:"short"}) : "today";
+function watchCard(w){
+  const mine = w.by === me.uid, link = safeLink(w.link);
+  return `<div class="wl${w.done?" done":""}">
+    <button class="tick" data-tick="${w.id}" aria-label="${w.done?"Mark as not watched":"Mark as watched"}">${w.done?"✓":""}</button>
+    <div class="bd"><div class="ttl">${esc(w.title)}${w.type?`<span class="type">${esc(w.type)}</span>`:""}</div>
+      ${w.note?`<p class="hand">${esc(w.note)}</p>`:""}
+      <small>added by ${esc(who(w))}${w.done?` · watched ${esc(shortDate(w.doneAt))}`:""}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener">link</a>`:""}${mine?`<button class="mini" data-ldel="${w.id}">delete</button>`:""}</small>
+    </div></div>`;
+}
+function songCard(x){
+  const mine = x.by === me.uid, link = safeLink(x.link);
+  return `<div class="wl"><span class="ic" aria-hidden="true">🎵</span>
+    <div class="bd"><div class="ttl">${esc(x.title)}</div>${x.artist?`<div class="art">${esc(x.artist)}</div>`:""}
+      ${x.note?`<p class="hand">${esc(x.note)}</p>`:""}
+      <small>from ${esc(who(x))}${mine?`<button class="mini" data-ldel="${x.id}">delete</button>`:""}</small>
+      ${link?`<a class="listen" href="${esc(link)}" target="_blank" rel="noopener">▶ Listen</a>`:""}
+    </div></div>`;
+}
+function renderLists(){
+  if(!me) return;
+  const watch = S.lists.filter(x=>x.kind==="watch");
+  const todo = watch.filter(x=>!x.done).sort((a,b)=>ms(a)-ms(b));
+  const done = watch.filter(x=>x.done).sort((a,b)=>(b.doneAt?.toMillis?.()||0)-(a.doneAt?.toMillis?.()||0));
+  $("#watchList").innerHTML = todo.length ? todo.map(watchCard).join("")
+    : `<div class="empty">${done.length ? "All caught up! Add the next one 🍿" : "Nothing on the list yet. Add a movie or show 🍿"}</div>`;
+  $("#watchedBox").hidden = !done.length;
+  $("#watchedSum").textContent = `Watched ✓ (${done.length})`;
+  $("#watchedList").innerHTML = done.map(watchCard).join("");
+  const songs = S.lists.filter(x=>x.kind==="song").sort((a,b)=>ms(b)-ms(a));
+  $("#songList").innerHTML = songs.length ? songs.map(songCard).join("") : `<div class="empty">No songs yet. Add one that reminds you of them 🎵</div>`;
+}
+$("#lists").addEventListener("click", async e=>{
+  const t = e.target.closest("[data-tick]");
+  if(t){
+    const w = S.lists.find(x=>x.id===t.dataset.tick); if(!w) return;
+    try{ await updateDoc(doc(db,"lists",w.id), w.done ? {done:false, doneAt:deleteField()} : {done:true, doneAt:serverTimestamp()}); }
+    catch(err){ alert("Couldn't update. Check your internet and try again."); }
+    return;
+  }
+  const d = e.target.closest("[data-ldel]");
+  if(d){
+    if(!confirm("Delete this for both of you?")) return;
+    try{ await deleteDoc(doc(db,"lists",d.dataset.ldel)); }catch(err){ alert("Couldn't delete. Check your internet and try again."); }
+  }
+});
+
 /* ============ daily check-ins ============ */
 const pad = n => String(n).padStart(2,"0");
 const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -1142,6 +1240,7 @@ render.checkins = renderCheckins;
 render.answers = renderAnswers;
 render.voices = renderVoices;
 render.locations = renderWhere;
+render.lists = renderLists;
 
 /* ============ sheet ============ */
 let lastFocus = null;
@@ -1278,6 +1377,21 @@ const FORMS = {
   note:{ title:"Leave a note", html:`
     <label>It shows on the home page for both of you</label><textarea name="note" maxlength="400" required></textarea>`,
     async save(f){ return [{home:{ note:f.elements.note.value.trim(), noteBy:me.uid, noteByName:me.name, noteAt:serverTimestamp(), reactions:deleteField() }}]; } },
+  watch:{ title:"Add something to watch", html:`
+    <label>Title</label><input type="text" name="title" maxlength="80" placeholder="e.g. a movie or show" required>
+    <label>What is it?</label>
+    <div class="chips">${["Movie","Show","Anime","Other"].map((t,i)=>`<label><input type="radio" name="type" value="${t}" ${i===0?"checked":""}><span>${t}</span></label>`).join("")}</div>
+    <label>Why this one? <small>(optional)</small></label><textarea name="note" maxlength="300"></textarea>
+    <label>Link <small>(optional, trailer or where to watch)</small></label><input type="url" name="link" placeholder="https://">`,
+    check(f){ const l = f.elements.link.value.trim(); return l && !safeLink(l) ? "The link should start with https://" : ""; },
+    async save(f){ return [{coll:"lists", data:{ kind:"watch", title:f.elements.title.value.trim(), type:f.elements.type.value, note:f.elements.note.value.trim(), link:f.elements.link.value.trim(), done:false }}]; } },
+  song:{ title:"Add a song", html:`
+    <label>Song</label><input type="text" name="title" maxlength="80" required>
+    <label>Artist <small>(optional)</small></label><input type="text" name="artist" maxlength="60">
+    <label>Why it reminds you of them <small>(optional)</small></label><textarea name="note" maxlength="300"></textarea>
+    <label>Spotify or YouTube link <small>(optional)</small></label><input type="url" name="link" placeholder="https://">`,
+    check(f){ const l = f.elements.link.value.trim(); return l && !safeLink(l) ? "The link should start with https://" : ""; },
+    async save(f){ return [{coll:"lists", data:{ kind:"song", title:f.elements.title.value.trim(), artist:f.elements.artist.value.trim(), note:f.elements.note.value.trim(), link:f.elements.link.value.trim() }}]; } },
   loc:{ title:"Share my location", html:`
     <p style="margin:6px 0 0;color:var(--soft)">Only you two can see this. You can stop sharing anytime.</p>
     <div class="choice">
@@ -1414,6 +1528,7 @@ const buddies = [
 let tab = "home";
 function updateFab(){
   const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"],
+    lists: wview==="songs" ? ["song","🎵 Add a song"] : ["watch","🍿 Add something to watch"],
     where: ["loc", me && S.locations.some(l=>l.by===me.uid) ? "📍 Update my location" : "📍 Share my location"], letters: lview==="voice" ? ["voice","🎙️ Record a voice note"] : ["letter","💌 Write a letter"],
     daily: ["checkin", me && myToday() ? "✏️ Edit today's check-in" : "☀️ Check in today"] };
   const [kind, label] = map[tab];
