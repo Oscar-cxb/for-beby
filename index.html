@@ -290,6 +290,11 @@ const firebaseConfig = {
   appId: "1:937679612636:web:f94907158c78107f092219"
 };
 const HER = "beby";                 // her login word
+// login word -> Firebase account email (password is always word + "-forever")
+const ACCOUNTS = {
+  beby:  "littlebeby@gmail.com",
+  oscar: "oscardegoat123@gmail.com"
+};
 const MY_NAME = "Oscar";            // how your posts are signed
 const GOODBYE = "2026-09-30T08:00:00+08:00";
 /* ================================== */
@@ -325,7 +330,7 @@ sprinkle($("#gateStars"),70);
 sprinkle($("#consStars"),60);
 
 /* ============ login ============ */
-function nameFor(email){ return (email||"").split("@")[0] === HER ? HER : MY_NAME; }
+function nameFor(email){ return (email||"").toLowerCase() === ACCOUNTS[HER] ? HER : MY_NAME; }
 const who = d => d.by === me?.uid ? "you" : (d.byName || "someone");
 
 onAuthStateChanged(auth, user => {
@@ -352,7 +357,9 @@ $("#gateForm").addEventListener("submit", async e=>{
   if(!word) return;
   $("#gateBtn").disabled = true; $("#gateErr").textContent = "";
   try{
-    await signInWithEmailAndPassword(auth, `${word}@forbeby.app`, `${word}-forever`);
+    const email = Object.hasOwn(ACCOUNTS, word) ? ACCOUNTS[word] : null;
+    if(!email){ const e = new Error("wrong"); e.code = "auth/invalid-credential"; throw e; }
+    await signInWithEmailAndPassword(auth, email, `${word}-forever`);
   }catch(err){
     const c = err.code || "";
     $("#gateErr").textContent =
