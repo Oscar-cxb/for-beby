@@ -295,6 +295,9 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 .wl small a{color:inherit}
 .wl .listen{display:inline-block;margin-top:8px;padding:7px 14px;border-radius:999px;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:700;font-size:14px}
 .wl .mini{background:none;border:0;padding:0;color:var(--soft);text-decoration:underline;font-size:13px;cursor:pointer;margin-left:6px}
+.spot{display:block;width:100%;border:0;border-radius:12px;margin-top:10px;background:transparent}
+.spot-btn{display:inline-block;margin-top:8px;padding:7px 14px;border-radius:999px;background:#1db954;color:#0b1f12;text-decoration:none;font-weight:800;font-size:14px}
+.hint{font-size:13px;color:var(--soft);margin-top:4px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chips label{margin:0}
 .chips input{position:absolute;opacity:0;pointer-events:none}
@@ -1100,13 +1103,22 @@ function watchCard(w){
       <small>added by ${esc(who(w))}${w.done?` · watched ${esc(shortDate(w.doneAt))}`:""}${link?` · <a href="${esc(link)}" target="_blank" rel="noopener">link</a>`:""}${mine?`<button class="mini" data-ldel="${w.id}">delete</button>`:""}</small>
     </div></div>`;
 }
+function spotifyEmbed(u){
+  const m = /open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/i.exec(u || "");
+  return m ? { type:m[1].toLowerCase(), id:m[2] } : null;
+}
 function songCard(x){
-  const mine = x.by === me.uid, link = safeLink(x.link);
+  const mine = x.by === me.uid, link = safeLink(x.link), sp = spotifyEmbed(link);
+  const search = `https://open.spotify.com/search/${encodeURIComponent([x.title, x.artist].filter(Boolean).join(" "))}`;
+  const player = sp
+    ? `<iframe class="spot" src="https://open.spotify.com/embed/${sp.type}/${sp.id}?utm_source=generator" height="${sp.type==="track"||sp.type==="episode"?80:152}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Spotify player"></iframe>`
+    : link ? `<a class="listen" href="${esc(link)}" target="_blank" rel="noopener">▶ Listen</a>`
+    : `<a class="spot-btn" href="${esc(search)}" target="_blank" rel="noopener">Find on Spotify</a>`;
   return `<div class="wl"><span class="ic" aria-hidden="true">🎵</span>
     <div class="bd"><div class="ttl">${esc(x.title)}</div>${x.artist?`<div class="art">${esc(x.artist)}</div>`:""}
       ${x.note?`<p class="hand">${esc(x.note)}</p>`:""}
       <small>from ${esc(who(x))}${mine?`<button class="mini" data-ldel="${x.id}">delete</button>`:""}</small>
-      ${link?`<a class="listen" href="${esc(link)}" target="_blank" rel="noopener">▶ Listen</a>`:""}
+      ${player}
     </div></div>`;
 }
 function renderLists(){
@@ -1386,10 +1398,23 @@ const FORMS = {
     check(f){ const l = f.elements.link.value.trim(); return l && !safeLink(l) ? "The link should start with https://" : ""; },
     async save(f){ return [{coll:"lists", data:{ kind:"watch", title:f.elements.title.value.trim(), type:f.elements.type.value, note:f.elements.note.value.trim(), link:f.elements.link.value.trim(), done:false }}]; } },
   song:{ title:"Add a song", html:`
+    <label>Spotify link <small>(optional, but then it plays right here)</small></label><input type="url" name="link" placeholder="https://open.spotify.com/track/…">
+    <div class="hint">In Spotify: tap ⋯ on the song → Share → Copy link. YouTube links work too.</div>
     <label>Song</label><input type="text" name="title" maxlength="80" required>
     <label>Artist <small>(optional)</small></label><input type="text" name="artist" maxlength="60">
-    <label>Why it reminds you of them <small>(optional)</small></label><textarea name="note" maxlength="300"></textarea>
-    <label>Spotify or YouTube link <small>(optional)</small></label><input type="url" name="link" placeholder="https://">`,
+    <label>Why it reminds you of them <small>(optional)</small></label><textarea name="note" maxlength="300"></textarea>`,
+    init(f){
+      const L = f.elements.link;
+      const fill = async ()=>{
+        const u = safeLink(L.value); if(!u || !spotifyEmbed(u) || f.elements.title.value.trim()) return;
+        try{
+          const r = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(u)}`);
+          const j = await r.json();
+          if(j.title && !f.elements.title.value.trim()) f.elements.title.value = j.title;
+        }catch(e){ /* fine, they can type it */ }
+      };
+      L.addEventListener("change", fill); L.addEventListener("paste", ()=>setTimeout(fill, 50));
+    },
     check(f){ const l = f.elements.link.value.trim(); return l && !safeLink(l) ? "The link should start with https://" : ""; },
     async save(f){ return [{coll:"lists", data:{ kind:"song", title:f.elements.title.value.trim(), artist:f.elements.artist.value.trim(), note:f.elements.note.value.trim(), link:f.elements.link.value.trim() }}]; } },
   loc:{ title:"Share my location", html:`
