@@ -210,6 +210,47 @@ nav button[aria-current="page"]{color:var(--ink)}
 .moods input:checked + span{background:var(--blush);border-color:var(--blush)}
 .moods input:focus-visible + span{outline:3px solid var(--honey)}
 
+/* ============ thinking of you ============ */
+.think{margin-top:22px;text-align:center}
+.think-btn{position:relative;border:0;border-radius:999px;padding:16px 28px;background:linear-gradient(135deg,#ffb8a3,#f59bb5);color:#3b2a4a;font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -12px rgba(245,120,150,.8);transition:transform .12s}
+.think-btn:active{transform:scale(.95)}
+.think-line{margin:10px 0 0;color:var(--soft);font-size:15px}
+.think-line b{color:var(--ink)}
+.fly{position:fixed;z-index:70;pointer-events:none;font-size:24px;animation:fly 1.2s ease-out forwards}
+@keyframes fly{0%{opacity:1;transform:translate(0,0) scale(.6)}100%{opacity:0;transform:translate(var(--dx),-140px) scale(1.3)}}
+#toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-140%);z-index:65;background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:999px;padding:10px 18px;font-weight:700;box-shadow:0 10px 24px -12px rgba(20,16,40,.5);transition:transform .35s cubic-bezier(.2,.8,.2,1);white-space:nowrap}
+#toast.on{transform:translate(-50%,0)}
+
+/* ============ question of the day ============ */
+.qotd{background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:18px 20px;margin-bottom:22px}
+.qotd .q{font-size:30px;margin:4px 0 12px}
+.qa{border-top:1.5px dashed var(--line);padding:10px 0}
+.qa .who{font-size:13px;font-weight:700;color:var(--soft)}
+.qa .hand{font-size:24px;margin:2px 0 0;white-space:pre-line}
+.qa .lock{color:var(--soft);font-size:15px;margin-top:2px}
+.qotd .btn{margin-top:8px}
+details.past{margin-top:6px}
+details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:15px}
+.past-q{margin-top:14px}
+.past-q .hand{font-size:22px;margin:0}
+.past-q p{margin:2px 0;font-size:15px}
+
+/* ============ voice notes ============ */
+.vn{display:flex;align-items:center;gap:14px;background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;position:relative}
+.vn-play{flex:none;width:52px;height:52px;border-radius:50%;border:0;background:var(--blush);color:#3b2a4a;font-size:20px;cursor:pointer}
+.vn-play.playing{background:var(--lav)}
+.vn-meta{flex:1;min-width:0}
+.vn-meta .hand{font-size:26px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vn-meta small{color:var(--soft);font-size:13px}
+.vn .dot{position:absolute;top:12px;right:12px;width:10px;height:10px;border-radius:50%;background:#f0627e}
+.vn-del{background:none;border:0;color:var(--soft);text-decoration:underline;font-size:13px;cursor:pointer;padding:0;margin-left:6px}
+.rec{text-align:center;margin:12px 0 4px}
+.rec-btn{border:0;border-radius:999px;padding:16px 26px;font-weight:800;font-size:17px;background:var(--blush);color:#3b2a4a;cursor:pointer}
+.rec-btn.on{background:#f0627e;color:#fff;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(240,98,126,.18)}}
+.rec-time{margin-top:10px;color:var(--soft);font-variant-numeric:tabular-nums}
+.rec audio{width:100%;margin-top:12px}
+
 /* ============ wandering buddy ============ */
 .buddy{position:fixed;left:0;top:0;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .buddy.doll{width:54px;height:74px}
@@ -267,6 +308,10 @@ nav button[aria-current="page"]{color:var(--ink)}
     </div>
     <p class="count" id="count"></p>
     <button class="linkish" id="setReunion">Set the day we see each other again</button>
+    <div class="think">
+      <button class="think-btn" id="thinkBtn">💛 thinking of you</button>
+      <p class="think-line" id="thinkLine"></p>
+    </div>
     <div id="noteBox"></div>
     <button class="linkish logout" id="logout">Log out</button>
   </section>
@@ -290,6 +335,7 @@ nav button[aria-current="page"]{color:var(--ink)}
   <section id="daily">
     <h2 class="hand pg-title">daily check-in</h2>
     <p class="pg-sub">One little update a day, from both of us.</p>
+    <div id="qotd"></div>
     <div id="streak"></div>
     <div id="todayBox"></div>
     <div id="history"></div>
@@ -306,9 +352,19 @@ nav button[aria-current="page"]{color:var(--ink)}
   </section>
 
   <section id="letters">
-    <h2 class="hand pg-title">open when…</h2>
-    <p class="pg-sub">Letters for each other. Open one when you need it.</p>
-    <div class="letters" id="letterList"></div>
+    <h2 class="hand pg-title" id="lettersTitle">open when…</h2>
+    <div class="seg" role="tablist" id="lseg">
+      <button role="tab" data-lview="letters" aria-selected="true">Letters</button>
+      <button role="tab" data-lview="voice" aria-selected="false">Voice notes</button>
+    </div>
+    <div id="lettersView">
+      <p class="pg-sub">Letters for each other. Open one when you need it.</p>
+      <div class="letters" id="letterList"></div>
+    </div>
+    <div id="voiceView" hidden>
+      <p class="pg-sub">Little messages you can hear.</p>
+      <div id="voiceList"></div>
+    </div>
   </section>
 </main>
 
@@ -435,6 +491,7 @@ nav button[aria-current="page"]{color:var(--ink)}
   <button class="lb-del" id="lbDel" hidden>Delete this photo</button>
 </div>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <div id="veil"></div>
 <div id="sheet" role="dialog" aria-modal="true">
   <div class="grab"></div>
@@ -454,7 +511,7 @@ nav button[aria-current="page"]{color:var(--ink)}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, updateDoc, deleteField, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, updateDoc, deleteField, onSnapshot, serverTimestamp, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /* ============ settings ============ */
 const firebaseConfig = {
@@ -490,7 +547,7 @@ const ms = d => d?.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now();
 const fmtDate = s => { if(!s) return ""; const d = new Date(s + "T00:00:00"); return isNaN(d) ? s : d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); };
 
 let me = null;
-const S = { memories:[], photos:[], places:[], letters:[], checkins:[], home:{} };
+const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], home:{} };
 let unsubs = [];
 
 function sprinkle(el, n){
@@ -519,7 +576,7 @@ onAuthStateChanged(auth, user => {
     $("#fab").hidden = false;
     if(buddies[0].el.hidden) buddies.forEach(b=>b.start());
     startListening();
-    renderHome();
+    renderHome(); renderThoughts(); renderAnswers(); renderVoices();
   }else{
     me = null;
     $("#gate").hidden = false;
@@ -550,12 +607,22 @@ $("#logout").addEventListener("click", ()=> signOut(auth));
 
 /* ============ live data ============ */
 function startListening(){
-  for(const c of ["memories","photos","places","letters","checkins"]){
+  for(const c of ["memories","photos","places","letters","checkins","answers","voices"]){
     unsubs.push(onSnapshot(collection(db,c), snap=>{
       S[c] = snap.docs.map(d=>({id:d.id, ...d.data()}));
       render[c]();
     }, err=>console.error(c, err)));
   }
+  let firstThoughts = true;
+  unsubs.push(onSnapshot(query(collection(db,"thoughts"), where("createdAt", ">=", Timestamp.fromMillis(Date.now() - 2*864e5))), snap=>{
+    if(!firstThoughts && snap.docChanges){
+      const fresh = snap.docChanges().filter(c => c.type==="added" && c.doc.data().by !== me.uid);
+      if(fresh.length) toast(`${nameOther()} is thinking of you 💛`);
+    }
+    firstThoughts = false;
+    S.thoughts = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderThoughts();
+  }, err=>console.error("thoughts", err)));
   unsubs.push(onSnapshot(doc(db,"meta","home"), snap=>{
     S.home = snap.exists() ? snap.data() : {};
     renderHome();
@@ -621,6 +688,208 @@ $("#noteBox").addEventListener("pointerdown", e=>{
 });
 ["pointerup","pointerleave","pointercancel"].forEach(t => $("#noteBox").addEventListener(t, ()=>clearTimeout(pressT)));
 $("#noteBox").addEventListener("contextmenu", e=>{ if(e.target.closest("#noteCard")) e.preventDefault(); });
+
+/* ============ thinking of you ============ */
+let toastT = null;
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("on"), 2600);
+}
+function burst(el){
+  const r = el.getBoundingClientRect();
+  for(let i=0;i<7;i++){
+    const h = document.createElement("span"); h.className = "fly";
+    h.textContent = ["💛","💗","💕","🤍"][i%4];
+    h.style.left = (r.left + r.width/2 - 12 + (Math.random()*40-20)) + "px";
+    h.style.top = (r.top - 6) + "px";
+    h.style.setProperty("--dx", (Math.random()*120-60) + "px");
+    h.style.animationDelay = (i*60) + "ms";
+    document.body.appendChild(h); setTimeout(()=>h.remove(), 1600);
+  }
+}
+function renderThoughts(){
+  if(!me) return;
+  const mid = new Date(); mid.setHours(0,0,0,0);
+  const today = S.thoughts.filter(t => ms(t) >= mid.getTime());
+  const theirs = today.filter(t => t.by !== me.uid).length, mine = today.length - theirs;
+  const o = esc(nameOther());
+  $("#thinkLine").innerHTML = (theirs
+    ? `<b>${o} thought of you ${theirs} ${theirs===1?"time":"times"} today 💛</b>`
+    : `No hearts from ${o} yet today`) + (mine ? ` · you sent ${mine}` : "");
+}
+let thinkBusy = false;
+$("#thinkBtn").addEventListener("click", async e=>{
+  burst(e.currentTarget);
+  if(navigator.vibrate) navigator.vibrate(12);
+  if(thinkBusy) return; thinkBusy = true; setTimeout(()=>thinkBusy=false, 600);
+  try{ await addDoc(collection(db,"thoughts"), { by:me.uid, byName:me.name, createdAt:serverTimestamp() }); }
+  catch(err){ console.error(err); toast("Couldn't send. Check your internet."); }
+});
+
+/* ============ question of the day ============ */
+const QUESTIONS = [
+  "What's one small thing I do that you secretly love?",
+  "If we could teleport anywhere tonight, where would we go?",
+  "What's your favourite memory of us so far?",
+  "What song reminds you of me?",
+  "What's something you want us to do the first day we see each other again?",
+  "What did you think of me the first time we met?",
+  "What's a food you want us to eat together?",
+  "What's one thing that made you smile today?",
+  "If we had a pet together, what would it be and what would we name it?",
+  "What's something you've never told me?",
+  "What's your idea of a perfect lazy day together?",
+  "What's one thing you're proud of yourself for lately?",
+  "Which of our photos is your favourite, and why?",
+  "What's a place you want to show me one day?",
+  "If our relationship was a movie, what would it be called?",
+  "What's the best gift you've ever gotten?",
+  "What's one habit of mine you've picked up?",
+  "What do you miss most about being together right now?",
+  "What's a dream you haven't told many people about?",
+  "Capybara or duck? Defend your answer.",
+  "What's something that always makes you feel better on a bad day?",
+  "What's one thing you want us to learn together?",
+  "Where do you see us in five years?",
+  "What's the funniest thing that's happened to us?",
+  "What's your comfort movie or show?",
+  "If you could relive one day with me, which one?",
+  "What's a small date idea we can do over video call?",
+  "What's something you're looking forward to this month?",
+  "What's one word you'd use to describe us?",
+  "What would your perfect breakfast be?",
+  "What's one thing you want me to know today?",
+  "What's a trip we should plan for when we're together?",
+  "What's something you appreciate about me that I might not realise?",
+  "What were you like as a kid?",
+  "What's one thing on your bucket list?",
+  "What's the last thing that made you laugh really hard?",
+  "What's a little ritual you want us to have?",
+  "What do you think our love language is?",
+  "What's your favourite way to spend a rainy day?",
+  "What would you name our future house?",
+  "What's one thing you're nervous about right now?",
+  "What's a random fact you know that I probably don't?",
+  "What's your favourite thing about long distance, if there is one?",
+  "If you could send me one thing through the screen right now, what would it be?",
+  "What was the best part of your week?",
+  "What's one thing you want to get better at?",
+  "What's your go-to order at our favourite place?",
+  "When did you first know you liked me?",
+  "What's one thing you'd tell your past self?",
+  "What should we do on our next video call?"
+];
+const qDay = String(Math.floor(Date.now() / 864e5));          // same for both of you, any time zone
+const qText = QUESTIONS[Number(qDay) % QUESTIONS.length];
+function renderAnswers(){
+  if(!me) return;
+  const o = esc(nameOther());
+  const today = S.answers.filter(a => a.day === qDay);
+  const mine = today.find(a => a.by === me.uid), theirs = today.find(a => a.by !== me.uid);
+  const theirsHTML = theirs
+    ? (mine ? `<p class="hand">${esc(theirs.text)}</p>` : `<div class="lock">🔒 ${o} answered. Answer to see it!</div>`)
+    : `<div class="lock">${mine ? `Waiting for ${o}…` : `${o} hasn't answered yet`}</div>`;
+  const byDay = {};
+  for(const a of S.answers){ if(a.day === qDay) continue; (byDay[a.day] ??= {}); byDay[a.day][a.by===me.uid?"me":"them"] = a; }
+  const past = Object.keys(byDay).filter(k => byDay[k].me && byDay[k].them).sort((a,b)=>b-a).slice(0,20);
+  $("#qotd").innerHTML = `<div class="qotd">
+    <div class="by">question of the day</div>
+    <p class="hand q">${esc(qText)}</p>
+    <div class="qa"><div class="who">you</div>${mine ? `<p class="hand">${esc(mine.text)}</p>` : `<div class="lock">Not answered yet</div>`}</div>
+    <div class="qa"><div class="who">${o}</div>${theirsHTML}</div>
+    <button class="btn primary" id="answerBtn">${mine ? "Edit my answer" : "Answer"}</button>
+    ${past.length ? `<details class="past"><summary>Past questions (${past.length})</summary>${past.map(k=>`
+      <div class="past-q"><p class="hand">${esc(byDay[k].me.q)}</p><p><b>you:</b> ${esc(byDay[k].me.text)}</p><p><b>${o}:</b> ${esc(byDay[k].them.text)}</p></div>`).join("")}</details>` : ""}
+  </div>`;
+}
+$("#qotd").addEventListener("click", e=>{ if(e.target.closest("#answerBtn")) openForm("answer"); });
+
+/* ============ voice notes ============ */
+let lview = "letters";
+document.querySelectorAll("#lseg button").forEach(b=>b.addEventListener("click",()=>{
+  lview = b.dataset.lview;
+  document.querySelectorAll("#lseg button").forEach(x=>x.setAttribute("aria-selected", x===b));
+  $("#lettersView").hidden = lview!=="letters";
+  $("#voiceView").hidden = lview!=="voice";
+  $("#lettersTitle").textContent = lview==="voice" ? "voice notes" : "open when…";
+  updateFab();
+}));
+const safeAudio = s => typeof s === "string" && s.startsWith("data:audio/") ? s : "";
+const fmtDur = n => `${Math.floor((n||0)/60)}:${pad(Math.round(n||0)%60)}`;
+const player = new Audio(); let playingId = null;
+player.addEventListener("ended", ()=>{ playingId = null; renderVoices(); });
+function renderVoices(){
+  if(!me) return;
+  const heard = new Set(local.get("heardVoices")||[]);
+  const list = [...S.voices].sort((a,b)=>ms(b)-ms(a));
+  S.voiceList = list;
+  $("#voiceList").innerHTML = list.length ? list.map((v,i)=>{
+    const mine = v.by===me.uid, isNew = !mine && !heard.has(v.id);
+    const when = v.createdAt?.toMillis ? new Date(v.createdAt.toMillis()).toLocaleDateString(undefined,{day:"numeric",month:"short"}) : "";
+    return `<div class="vn">
+      <button class="vn-play${playingId===v.id?" playing":""}" data-i="${i}" aria-label="${playingId===v.id?"Pause":"Play"}">${playingId===v.id?"❚❚":"▶"}</button>
+      <div class="vn-meta"><span class="hand">${esc(v.title || "voice note")}</span>
+        <small>from ${esc(who(v))} · ${fmtDur(v.dur)}${when?` · ${esc(when)}`:""}${mine?`<button class="vn-del" data-del="${i}">delete</button>`:""}</small></div>
+      ${isNew?`<span class="dot" aria-label="new"></span>`:""}
+    </div>`; }).join("")
+    : `<div class="empty">No voice notes yet. Record the first one.</div>`;
+}
+$("#voiceList").addEventListener("click", async e=>{
+  const d = e.target.closest("[data-del]");
+  if(d){
+    const v = S.voiceList[+d.dataset.del]; if(!v || !confirm("Delete this voice note for both of you?")) return;
+    if(playingId===v.id){ player.pause(); playingId=null; }
+    try{ await deleteDoc(doc(db,"voices",v.id)); }catch(err){ alert("Couldn't delete. Check your internet and try again."); }
+    return;
+  }
+  const b = e.target.closest(".vn-play"); if(!b) return;
+  const v = S.voiceList[+b.dataset.i]; if(!v) return;
+  if(playingId===v.id){ player.pause(); playingId=null; renderVoices(); return; }
+  player.src = safeAudio(v.audio);
+  try{ await player.play(); playingId = v.id; }catch(err){ alert("Couldn't play this one on this device."); playingId = null; }
+  const h = new Set(local.get("heardVoices")||[]); h.add(v.id); local.set("heardVoices",[...h]);
+  renderVoices();
+});
+
+let rec = null;   // active recorder
+function stopRec(){ if(rec){ try{ rec.mr.state!=="inactive" && rec.mr.stop(); }catch(e){} rec.stream.getTracks().forEach(t=>t.stop()); clearInterval(rec.timer); rec = null; } }
+function initRecorder(f){
+  const btn = f.querySelector("#recBtn"), time = f.querySelector("#recTime"), prev = f.querySelector("#recPrev"), err = f.querySelector("#formErr");
+  const MAX = 60;
+  btn.addEventListener("click", async ()=>{
+    if(rec){ rec.mr.stop(); return; }
+    if(!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined"){ err.textContent = "This browser can't record audio. Try Chrome or Safari."; return; }
+    let stream;
+    try{ stream = await navigator.mediaDevices.getUserMedia({audio:true}); }
+    catch(e2){ err.textContent = "Allow microphone access to record."; return; }
+    const type = ["audio/mp4","audio/webm;codecs=opus","audio/webm","audio/ogg"].find(t => MediaRecorder.isTypeSupported?.(t)) || "";
+    const mr = new MediaRecorder(stream, type ? {mimeType:type, audioBitsPerSecond:32000} : {audioBitsPerSecond:32000});
+    const chunks = [], t0 = Date.now();
+    rec = { mr, stream, timer:null };
+    mr.ondataavailable = e3 => { if(e3.data.size) chunks.push(e3.data); };
+    mr.onstop = ()=>{
+      const secs = Math.min(MAX, (Date.now()-t0)/1000);
+      stream.getTracks().forEach(t=>t.stop()); clearInterval(rec?.timer); rec = null;
+      btn.classList.remove("on"); btn.textContent = "🔁 Record again";
+      const blob = new Blob(chunks, {type: mr.mimeType || type || "audio/webm"});
+      const r = new FileReader();
+      r.onload = ()=>{
+        if(r.result.length > 950000){ err.textContent = "That one's too long to save. Try a shorter one."; f._audio = null; return; }
+        f._audio = r.result; f._dur = Math.round(secs);
+        prev.src = r.result; prev.hidden = false; err.textContent = "";
+      };
+      r.readAsDataURL(blob);
+    };
+    mr.start(250);
+    btn.classList.add("on"); btn.textContent = "⏹ Stop";
+    err.textContent = ""; prev.hidden = true; f._audio = null;
+    rec.timer = setInterval(()=>{
+      const s2 = (Date.now()-t0)/1000;
+      time.textContent = `${fmtDur(s2)} / ${fmtDur(MAX)}`;
+      if(s2 >= MAX && rec) rec.mr.stop();
+    }, 200);
+  });
+}
 
 /* ============ daily check-ins ============ */
 const pad = n => String(n).padStart(2,"0");
@@ -722,6 +991,8 @@ const render = {
 };
 
 render.checkins = renderCheckins;
+render.answers = renderAnswers;
+render.voices = renderVoices;
 
 /* ============ sheet ============ */
 let lastFocus = null;
@@ -732,6 +1003,7 @@ function openSheet(html){
   const f = $("#sheetContent").querySelector("input,textarea,button"); if(f) f.focus();
 }
 function closeSheet(){
+  stopRec();
   $("#veil").classList.remove("on"); $("#sheet").classList.remove("on");
   if(lastFocus) lastFocus.focus();
 }
@@ -857,6 +1129,20 @@ const FORMS = {
   note:{ title:"Leave a note", html:`
     <label>It shows on the home page for both of you</label><textarea name="note" maxlength="400" required></textarea>`,
     async save(f){ return [{home:{ note:f.elements.note.value.trim(), noteBy:me.uid, noteByName:me.name, noteAt:serverTimestamp(), reactions:deleteField() }}]; } },
+  answer:{ title:"Question of the day", html:()=>{ const a = S.answers.find(x => x.day===qDay && x.by===me.uid) || {}; return `
+    <p class="hand" style="font-size:28px;margin:6px 0 0">${esc(qText)}</p>
+    <label>Your answer</label><textarea name="text" maxlength="500" required>${esc(a.text||"")}</textarea>`; },
+    async save(f){ return [{coll:"answers", id:`${qDay}_${me.uid}`, data:{ day:qDay, q:qText, text:f.elements.text.value.trim() }}]; } },
+  voice:{ title:"Record a voice note", html:`
+    <div class="rec">
+      <button type="button" class="rec-btn" id="recBtn">🎙️ Tap to record</button>
+      <div class="rec-time" id="recTime">0:00 / 1:00</div>
+      <audio id="recPrev" controls hidden></audio>
+    </div>
+    <label>Title <small>(optional)</small></label><input type="text" name="title" maxlength="40" placeholder="goodnight 🌙">`,
+    init: initRecorder,
+    check(f){ return rec ? "Stop recording first." : (f._audio ? "" : "Record something first."); },
+    async save(f){ return [{coll:"voices", data:{ title:f.elements.title.value.trim(), audio:f._audio, dur:f._dur||0 }}]; } },
   checkin:{ title:"Today's check-in", html:()=>{ const c = myToday() || {}; return `
     <label>How are you feeling?</label>
     <div class="moods">${MOODS.map(m=>`<label><input type="radio" name="mood" value="${m}" ${c.mood===m?"checked":""}><span>${m}</span></label>`).join("")}</div>
@@ -888,6 +1174,7 @@ function openForm(kind){
     <div class="form-err" id="formErr" role="alert"></div>
     <div class="sheet-actions"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary" id="saveBtn">Save</button></div>
   </form>`);
+  if(F.init) F.init($("#addForm"));
   $("#addForm").addEventListener("submit", async e=>{
     e.preventDefault();
     const f = e.target, btn = $("#saveBtn"), errEl = $("#formErr");
@@ -961,7 +1248,7 @@ const buddies = [
 /* ============ add button + tabs ============ */
 let tab = "home";
 function updateFab(){
-  const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"], letters:["letter","💌 Write a letter"],
+  const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"], letters: lview==="voice" ? ["voice","🎙️ Record a voice note"] : ["letter","💌 Write a letter"],
     daily: ["checkin", me && myToday() ? "✏️ Edit today's check-in" : "☀️ Check in today"] };
   const [kind, label] = map[tab];
   $("#fab").textContent = label; $("#fab").dataset.kind = kind;
