@@ -175,11 +175,40 @@ section.on{display:block}
 
 /* tab bar */
 nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1.5px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
-nav .row{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav .row{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 nav button{background:none;border:0;padding:6px 0;cursor:pointer;color:var(--soft);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px}
 nav button span{font-size:22px;line-height:1.1}
 nav button[aria-current="page"]{color:var(--ink)}
 
+
+/* ============ note reactions ============ */
+.note{position:relative;-webkit-touch-callout:none}
+.reacts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.r-pill{background:var(--bg);border:1.5px solid var(--line);border-radius:999px;padding:3px 10px;font-size:14px}
+.r-add{background:none;border:1.5px dashed var(--line);border-radius:999px;padding:3px 10px;font-size:14px;cursor:pointer;color:var(--soft)}
+.r-bar{display:flex;gap:4px;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:6px 8px;box-shadow:0 10px 24px -12px rgba(20,16,40,.5);margin-top:10px;width:max-content;max-width:100%}
+.r-bar button{border:0;background:none;font-size:26px;line-height:1;padding:4px 5px;border-radius:50%;cursor:pointer;transition:transform .12s}
+.r-bar button:active,.r-bar button:hover{transform:scale(1.25)}
+.r-bar button.mine{background:var(--blush)}
+
+/* ============ daily check-ins ============ */
+.streak{display:inline-block;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;margin-bottom:16px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ci{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:12px;text-align:left;width:100%;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-height:120px}
+.ci.none{cursor:default;border-style:dashed;background:transparent;justify-content:center;align-items:center;text-align:center;color:var(--soft);font-size:14px}
+.ci-who{font-size:13px;font-weight:700;color:var(--soft)}
+.ci-mood{font-size:34px;line-height:1}
+.ci .hand{font-size:22px;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.ci img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-top:4px}
+.day-h{font-weight:700;color:var(--soft);font-size:14px;margin:26px 0 8px}
+.pair.small .ci{min-height:0}
+.pair.small .ci-mood{font-size:26px}
+.moods{display:flex;gap:6px;flex-wrap:wrap}
+.moods label{margin:0}
+.moods input{position:absolute;opacity:0;pointer-events:none}
+.moods span{display:block;font-size:30px;padding:6px 9px;border-radius:14px;border:1.5px solid var(--line);cursor:pointer}
+.moods input:checked + span{background:var(--blush);border-color:var(--blush)}
+.moods input:focus-visible + span{outline:3px solid var(--honey)}
 
 /* ============ wandering buddy ============ */
 #buddy{position:fixed;left:0;top:0;width:54px;height:74px;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
@@ -239,6 +268,14 @@ nav button[aria-current="page"]{color:var(--ink)}
       <p class="hand gal-title">captured memories with beby</p>
       <div class="gal" id="gallery"></div>
     </div>
+  </section>
+
+  <section id="daily">
+    <h2 class="hand pg-title">daily check-in</h2>
+    <p class="pg-sub">One little update a day, from both of us.</p>
+    <div id="streak"></div>
+    <div id="todayBox"></div>
+    <div id="history"></div>
   </section>
 
   <section id="places">
@@ -311,6 +348,7 @@ nav button[aria-current="page"]{color:var(--ink)}
   <div class="row">
     <button data-tab="home" aria-current="page"><span>🏠</span>Home</button>
     <button data-tab="us"><span>📷</span>Us</button>
+    <button data-tab="daily"><span>☀️</span>Daily</button>
     <button data-tab="places"><span>✨</span>Places</button>
     <button data-tab="letters"><span>💌</span>Letters</button>
   </div>
@@ -319,7 +357,7 @@ nav button[aria-current="page"]{color:var(--ink)}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, updateDoc, deleteField, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /* ============ settings ============ */
 const firebaseConfig = {
@@ -355,7 +393,7 @@ const ms = d => d?.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now();
 const fmtDate = s => { if(!s) return ""; const d = new Date(s + "T00:00:00"); return isNaN(d) ? s : d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); };
 
 let me = null;
-const S = { memories:[], photos:[], places:[], letters:[], home:{} };
+const S = { memories:[], photos:[], places:[], letters:[], checkins:[], home:{} };
 let unsubs = [];
 
 function sprinkle(el, n){
@@ -415,7 +453,7 @@ $("#logout").addEventListener("click", ()=> signOut(auth));
 
 /* ============ live data ============ */
 function startListening(){
-  for(const c of ["memories","photos","places","letters"]){
+  for(const c of ["memories","photos","places","letters","checkins"]){
     unsubs.push(onSnapshot(collection(db,c), snap=>{
       S[c] = snap.docs.map(d=>({id:d.id, ...d.data()}));
       render[c]();
@@ -449,10 +487,80 @@ function renderHome(){
   }
   const n = S.home;
   $("#noteBox").innerHTML = n.note
-    ? `<div class="note"><div class="by">latest note</div><p class="hand">${esc(n.note)}</p><p class="hand sign">– ${esc(n.noteBy===me.uid ? "you" : n.noteByName)}</p></div>`
+    ? `<div class="note" id="noteCard"><div class="by">latest note</div><p class="hand">${esc(n.note)}</p><p class="hand sign">– ${esc(n.noteBy===me.uid ? "you" : n.noteByName)}</p>${reactHTML()}</div>`
     : `<div class="note"><p class="hand">No note yet. Leave one for ${esc(other)}.</p></div>`;
   updateFab();
 }
+
+/* ============ note reactions ============ */
+const EMOJIS = ["❤️","😂","😮","😢","🙏","👍"];
+let barOpen = false;
+function reactHTML(){
+  const r = S.home.reactions || {}, mine = r[me.uid];
+  const pills = Object.entries(r).filter(([,e])=>e).map(([uid,e]) => `<span class="r-pill">${esc(uid===me.uid ? "you" : (S.home.reactNames?.[uid] || nameOther()))} ${esc(e)}</span>`).join("");
+  const bar = barOpen ? `<div class="r-bar" role="group" aria-label="React">${EMOJIS.map(e=>`<button type="button" class="${e===mine?"mine":""}" data-emo="${e}" aria-label="React ${e}">${e}</button>`).join("")}</div>` : "";
+  return `<div class="reacts">${pills}<button type="button" class="r-add" id="rAdd" aria-expanded="${barOpen}">${mine ? "change" : "😊+"}</button></div>${bar}`;
+}
+function nameOther(){ return me.name === HER ? MY_NAME : HER; }
+async function react(e){
+  const mine = S.home.reactions?.[me.uid];
+  barOpen = false;
+  try{
+    await updateDoc(doc(db,"meta","home"), {
+      [`reactions.${me.uid}`]: e === mine ? deleteField() : e,
+      [`reactNames.${me.uid}`]: me.name
+    });
+  }catch(err){ console.error(err); alert("Couldn't react. Check your internet and try again."); }
+  renderHome();
+}
+$("#noteBox").addEventListener("click", e=>{
+  if(e.target.closest("#rAdd")){ barOpen = !barOpen; renderHome(); return; }
+  const b = e.target.closest("[data-emo]"); if(b) react(b.dataset.emo);
+});
+let pressT = null;
+$("#noteBox").addEventListener("pointerdown", e=>{
+  if(!e.target.closest("#noteCard") || e.target.closest("button")) return;
+  pressT = setTimeout(()=>{ barOpen = true; renderHome(); if(navigator.vibrate) navigator.vibrate(15); }, 450);
+});
+["pointerup","pointerleave","pointercancel"].forEach(t => $("#noteBox").addEventListener(t, ()=>clearTimeout(pressT)));
+$("#noteBox").addEventListener("contextmenu", e=>{ if(e.target.closest("#noteCard")) e.preventDefault(); });
+
+/* ============ daily check-ins ============ */
+const pad = n => String(n).padStart(2,"0");
+const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey = () => dayKey(new Date());
+const MOODS = ["🥰","😄","🙂","😐","😔","😴"];
+function myToday(){ return S.checkins.find(c => c.by===me.uid && c.date===todayKey()); }
+function ciCard(c, label){
+  if(!c) return `<div class="ci none">${esc(label)}<br>hasn't checked in yet</div>`;
+  return `<button class="ci" data-id="${c.id}"><span class="ci-who">${esc(label)}</span><span class="ci-mood">${esc(c.mood)}</span>${c.text?`<p class="hand">${esc(c.text)}</p>`:""}${safeImg(c.photo)?`<img src="${safeImg(c.photo)}" alt="" loading="lazy">`:""}</button>`;
+}
+function prettyDay(key){
+  const t = todayKey(), y = new Date(); y.setDate(y.getDate()-1);
+  if(key===t) return "Today"; if(key===dayKey(y)) return "Yesterday";
+  return fmtDate(key);
+}
+function renderCheckins(){
+  if(!me) return;
+  const t = todayKey(), byDate = {};
+  for(const c of S.checkins){ (byDate[c.date] ??= {}); byDate[c.date][c.by===me.uid ? "me" : "them"] = c; }
+  const other = nameOther();
+  const today = byDate[t] || {};
+  $("#todayBox").innerHTML = `<div class="day-h" style="margin-top:0">Today</div><div class="pair">${ciCard(today.me,"you")}${ciCard(today.them,other)}</div>`;
+  // streak: consecutive days where both checked in
+  let streak = 0; const d = new Date();
+  if(!(today.me && today.them)) d.setDate(d.getDate()-1);
+  for(let i=0;i<400;i++){ const k = dayKey(d), e = byDate[k]; if(e && e.me && e.them){ streak++; d.setDate(d.getDate()-1); } else break; }
+  $("#streak").innerHTML = streak ? `<span class="streak">🔥 ${streak} ${streak===1?"day":"days"} in a row, both of you</span>` : "";
+  const past = Object.keys(byDate).filter(k=>k!==t).sort().reverse().slice(0,30);
+  $("#history").innerHTML = past.map(k=>`<div class="day-h">${esc(prettyDay(k))}</div><div class="pair small">${ciCard(byDate[k].me,"you")}${ciCard(byDate[k].them,other)}</div>`).join("");
+  updateFab();
+}
+$("#daily").addEventListener("click", e=>{
+  const b = e.target.closest(".ci[data-id]"); if(!b) return;
+  const c = S.checkins.find(x=>x.id===b.dataset.id); if(!c) return;
+  detail({photo:c.photo, title:`${c.mood}  ${prettyDay(c.date).toLowerCase()}`, meta:`from ${who(c)}`, body:c.text||"", item:c, coll:"checkins"});
+});
 
 /* ============ us ============ */
 let usView = "story";
@@ -515,6 +623,8 @@ const render = {
       : `<div class="empty">No letters yet. Write the first one.</div>`;
   }
 };
+
+render.checkins = renderCheckins;
 
 /* ============ sheet ============ */
 let lastFocus = null;
@@ -649,7 +759,14 @@ const FORMS = {
     async save(f){ return [{coll:"letters", data:{ when:f.elements.when.value.trim(), text:f.elements.text.value.trim() }}]; } },
   note:{ title:"Leave a note", html:`
     <label>It shows on the home page for both of you</label><textarea name="note" maxlength="400" required></textarea>`,
-    async save(f){ return [{home:{ note:f.elements.note.value.trim(), noteBy:me.uid, noteByName:me.name, noteAt:serverTimestamp() }}]; } },
+    async save(f){ return [{home:{ note:f.elements.note.value.trim(), noteBy:me.uid, noteByName:me.name, noteAt:serverTimestamp(), reactions:deleteField() }}]; } },
+  checkin:{ title:"Today's check-in", html:()=>{ const c = myToday() || {}; return `
+    <label>How are you feeling?</label>
+    <div class="moods">${MOODS.map(m=>`<label><input type="radio" name="mood" value="${m}" ${c.mood===m?"checked":""}><span>${m}</span></label>`).join("")}</div>
+    <label>How's your day? <small>(a line or two)</small></label><textarea name="text" maxlength="300">${esc(c.text||"")}</textarea>
+    <label>Pic of your day <small>(optional${c.photo?", leave empty to keep the current one":""})</small></label><input type="file" name="photo" accept="image/*">`; },
+    check(f){ return f.elements.mood.value ? "" : "Pick a mood first."; },
+    async save(f){ const c = myToday() || {}; return [{coll:"checkins", id:`${me.uid}_${todayKey()}`, data:{ date:todayKey(), mood:f.elements.mood.value, text:f.elements.text.value.trim(), photo: f.elements.photo.files[0] ? await shrink(f.elements.photo.files[0]) : (c.photo||"") }}]; } },
   reunion:{ title:"When do we meet again?", html:`
     <label>Pick the date</label><input type="date" name="reunion" min="${today}" required>`,
     async save(f){ return [{home:{ reunion:f.elements.reunion.value }}]; } }
@@ -670,7 +787,7 @@ function freeSpot(){
 function openForm(kind){
   const F = FORMS[kind];
   openSheet(`<form class="form" id="addForm" novalidate>
-    <h2>${F.title}</h2>${F.html}
+    <h2>${F.title}</h2>${typeof F.html==="function" ? F.html() : F.html}
     <div class="form-err" id="formErr" role="alert"></div>
     <div class="sheet-actions"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary" id="saveBtn">Save</button></div>
   </form>`);
@@ -679,11 +796,13 @@ function openForm(kind){
     const f = e.target, btn = $("#saveBtn"), errEl = $("#formErr");
     const missing = [...f.querySelectorAll("[required]")].find(el => el.type==="file" ? !el.files.length : !el.value.trim());
     if(missing){ errEl.textContent = "Fill in the highlighted bit first."; missing.focus(); return; }
+    const bad = F.check ? F.check(f) : ""; if(bad){ errEl.textContent = bad; return; }
     btn.disabled = true; btn.textContent = "Saving…"; errEl.textContent = "";
     try{
       const items = await F.save(f);
       for(const it of items){
         if(it.home) await setDoc(doc(db,"meta","home"), it.home, {merge:true});
+        else if(it.id) await setDoc(doc(db, it.coll, it.id), { ...it.data, by:me.uid, byName:me.name, createdAt:serverTimestamp() });
         else await addDoc(collection(db, it.coll), { ...it.data, by:me.uid, byName:me.name, createdAt:serverTimestamp() });
       }
       closeSheet();
@@ -740,7 +859,8 @@ addEventListener("resize", ()=>{ const L = bLimits(); bx = Math.min(bx, L.maxX);
 /* ============ add button + tabs ============ */
 let tab = "home";
 function updateFab(){
-  const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"], letters:["letter","💌 Write a letter"] };
+  const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"], letters:["letter","💌 Write a letter"],
+    daily: ["checkin", me && myToday() ? "✏️ Edit today's check-in" : "☀️ Check in today"] };
   const [kind, label] = map[tab];
   $("#fab").textContent = label; $("#fab").dataset.kind = kind;
 }
