@@ -175,7 +175,7 @@ section.on{display:block}
 
 /* tab bar */
 nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1.5px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
-nav .row{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav .row{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
 nav button{background:none;border:0;padding:6px 0;cursor:pointer;color:var(--soft);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px}
 nav button span{font-size:22px;line-height:1.1}
 nav button[aria-current="page"]{color:var(--ink)}
@@ -250,6 +250,35 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(240,98,126,.18)}}
 .rec-time{margin-top:10px;color:var(--soft);font-variant-numeric:tabular-nums}
 .rec audio{width:100%;margin-top:12px}
+
+/* ============ where we are ============ */
+.apart{font-size:30px;margin:0 0 14px}
+.map-wrap{position:relative;margin:0 -20px;border-radius:28px;overflow:hidden;border:1.5px solid var(--line);background:#f6ece6;height:52vh;min-height:300px;width:calc(100% + 40px)}
+#map{position:absolute;inset:0}
+#map .leaflet-tile-pane{filter:sepia(.18) saturate(1.15) hue-rotate(-12deg) brightness(1.02)}
+.map-msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--soft);padding:20px;z-index:500;pointer-events:none}
+.pin{display:flex;flex-direction:column;align-items:center}
+.pin .bubble{width:58px;height:58px;border-radius:50%;background:#fffdf9;border:3px solid #ffb8a3;display:grid;place-items:center;box-shadow:0 6px 14px -6px rgba(59,42,74,.5);animation:pinbob 2.4s ease-in-out infinite}
+.pin.her .bubble{border-color:#c9b8f0}
+.pin .bubble svg{width:44px;height:40px}
+.pin .tag{margin-top:3px;background:#fffdf9;color:#3b2a4a;border-radius:999px;padding:1px 8px;font-family:var(--hand);font-size:18px;box-shadow:0 3px 8px -4px rgba(59,42,74,.5);white-space:nowrap}
+@keyframes pinbob{50%{transform:translateY(-4px)}}
+.mid-heart{font-size:26px;animation:beat 1.4s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
+.leaflet-container{font-family:var(--ui)}
+.who-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.wc{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:14px}
+.wc .av{width:44px;height:40px;margin-bottom:4px}
+.wc .av svg{width:100%;height:100%}
+.wc .nm{font-family:var(--hand);font-size:26px;line-height:1}
+.wc .city{font-weight:700;font-size:15px;margin-top:4px}
+.wc .tm{color:var(--soft);font-size:14px}
+.wc .upd{color:var(--soft);font-size:12px;margin-top:4px}
+.wc .stop{background:none;border:0;padding:0;margin-top:6px;color:var(--soft);text-decoration:underline;font-size:13px;cursor:pointer}
+.choice{display:grid;gap:8px;margin-top:8px}
+.choice label{display:flex;gap:10px;align-items:flex-start;margin:0;font-weight:600;padding:12px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer}
+.choice small{display:block;font-weight:400;color:var(--soft)}
+.choice input{margin-top:4px}
 
 /* ============ wandering buddy ============ */
 .buddy{position:fixed;left:0;top:0;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
@@ -339,6 +368,13 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
     <div id="streak"></div>
     <div id="todayBox"></div>
     <div id="history"></div>
+  </section>
+
+  <section id="where">
+    <h2 class="hand pg-title">where we are</h2>
+    <p class="hand apart" id="apart"></p>
+    <div class="map-wrap"><div id="map"></div><div class="map-msg" id="mapMsg">Loading the map…</div></div>
+    <div class="who-cards" id="whoCards"></div>
   </section>
 
   <section id="places">
@@ -503,6 +539,7 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
     <button data-tab="home" aria-current="page"><span>🏠</span>Home</button>
     <button data-tab="us"><span>📷</span>Us</button>
     <button data-tab="daily"><span>☀️</span>Daily</button>
+    <button data-tab="where"><span>📍</span>Where</button>
     <button data-tab="places"><span>✨</span>Places</button>
     <button data-tab="letters"><span>💌</span>Letters</button>
   </div>
@@ -547,7 +584,7 @@ const ms = d => d?.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now();
 const fmtDate = s => { if(!s) return ""; const d = new Date(s + "T00:00:00"); return isNaN(d) ? s : d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); };
 
 let me = null;
-const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], home:{} };
+const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], locations:[], home:{} };
 let unsubs = [];
 
 function sprinkle(el, n){
@@ -576,7 +613,7 @@ onAuthStateChanged(auth, user => {
     $("#fab").hidden = false;
     if(buddies[0].el.hidden) buddies.forEach(b=>b.start());
     startListening();
-    renderHome(); renderThoughts(); renderAnswers(); renderVoices();
+    renderHome(); renderThoughts(); renderAnswers(); renderVoices(); renderWhere();
   }else{
     me = null;
     $("#gate").hidden = false;
@@ -607,7 +644,7 @@ $("#logout").addEventListener("click", ()=> signOut(auth));
 
 /* ============ live data ============ */
 function startListening(){
-  for(const c of ["memories","photos","places","letters","checkins","answers","voices"]){
+  for(const c of ["memories","photos","places","letters","checkins","answers","voices","locations"]){
     unsubs.push(onSnapshot(collection(db,c), snap=>{
       S[c] = snap.docs.map(d=>({id:d.id, ...d.data()}));
       render[c]();
@@ -891,6 +928,117 @@ function initRecorder(f){
   });
 }
 
+/* ============ where we are ============ */
+const avatarSVG = kind => { const el = $(kind==="her" ? ".buddy.duckie svg" : ".buddy.capy.solo svg"); return el ? el.outerHTML : ""; };
+const kindOf = loc => loc.byName === HER ? "her" : "me_";
+let map = null, mapLayers = [], leafletP = null;
+function loadLeaflet(){
+  if(window.L) return Promise.resolve();
+  if(leafletP) return leafletP;
+  leafletP = new Promise((res, rej)=>{
+    const css = document.createElement("link"); css.rel = "stylesheet";
+    css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.appendChild(css);
+    const js = document.createElement("script"); js.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    js.onload = res; js.onerror = rej; document.head.appendChild(js);
+  });
+  return leafletP;
+}
+function kmBetween(a, b){
+  const R = 6371, r = x => x*Math.PI/180;
+  const dLat = r(b.lat-a.lat), dLng = r(b.lng-a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function ago(t){
+  if(!t) return "";
+  const m = Math.round((Date.now()-t)/60000);
+  if(m < 2) return "just now"; if(m < 60) return `${m} min ago`;
+  const h = Math.round(m/60); if(h < 24) return `${h}h ago`;
+  const d = Math.round(h/24); return `${d} ${d===1?"day":"days"} ago`;
+}
+function timeIn(tz){ try{ return new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit", timeZone:tz}); }catch(e){ return ""; } }
+function renderWhere(){
+  if(!me) return;
+  const mine = S.locations.find(l => l.by === me.uid), theirs = S.locations.find(l => l.by !== me.uid);
+  const o = nameOther();
+  // headline
+  let line = "";
+  if(mine && theirs){
+    const km = kmBetween(mine, theirs);
+    line = km < 30 ? "close enough for a hug 🤗" : `${Math.round(km).toLocaleString()} km apart, but still us 💛`;
+  }else if(!mine && !theirs) line = "share your spot so we can see each other 💛";
+  else line = mine ? `waiting for ${o} to share 💛` : `${o} shared, your turn 💛`;
+  $("#apart").textContent = line;
+  // cards
+  const card = (l, label, isMe) => {
+    const kind = isMe ? (me.name===HER?"her":"me_") : (me.name===HER?"me_":"her");
+    if(!l) return `<div class="wc"><div class="av">${avatarSVG(kind)}</div><div class="nm">${esc(label)}</div><div class="tm">${isMe ? "Not sharing yet" : "Hasn't shared yet"}</div></div>`;
+    const t = l.updatedAt?.toMillis ? l.updatedAt.toMillis() : Date.now();
+    const tm = timeIn(l.tz);
+    return `<div class="wc"><div class="av">${avatarSVG(kind)}</div><div class="nm">${esc(label)}</div>
+      <div class="city">📍 ${esc(l.city || "somewhere nice")}</div>
+      ${tm ? `<div class="tm">it's ${esc(tm)} ${isMe ? "for you" : `for ${esc(label)}`}</div>` : ""}
+      <div class="upd">updated ${esc(ago(t))}${l.exact ? "" : " · area only"}</div>
+      ${isMe ? `<button class="stop" id="stopShare">Stop sharing</button>` : ""}</div>`;
+  };
+  $("#whoCards").innerHTML = card(mine, "you", true) + card(theirs, o, false);
+  drawMap(mine, theirs);
+  updateFab();
+}
+function drawMap(mine, theirs){
+  if(!window.L || !map) return;
+  mapLayers.forEach(x => x.remove()); mapLayers = [];
+  const pts = [mine, theirs].filter(Boolean);
+  $("#mapMsg").textContent = pts.length ? "" : "No one's on the map yet.";
+  for(const l of pts){
+    const kind = kindOf(l), label = l.by === me.uid ? "you" : l.byName;
+    const icon = L.divIcon({ className:"", iconSize:[80,90], iconAnchor:[40,64],
+      html:`<div class="pin ${kind==="her"?"her":""}"><div class="bubble">${avatarSVG(kind)}</div><div class="tag">${esc(label)}</div></div>` });
+    mapLayers.push(L.marker([l.lat, l.lng], {icon, keyboard:false}).addTo(map));
+  }
+  if(pts.length === 2){
+    mapLayers.push(L.polyline(pts.map(p=>[p.lat,p.lng]), {color:"#f59bb5", weight:3, dashArray:"6 9", opacity:.9}).addTo(map));
+    const mid = [(pts[0].lat+pts[1].lat)/2, (pts[0].lng+pts[1].lng)/2];
+    mapLayers.push(L.marker(mid, {icon:L.divIcon({className:"", iconSize:[30,30], iconAnchor:[15,15], html:`<div class="mid-heart">💛</div>`}), keyboard:false, interactive:false}).addTo(map));
+    map.fitBounds(pts.map(p=>[p.lat,p.lng]), {padding:[70,70], maxZoom:12});
+  }else if(pts.length === 1) map.setView([pts[0].lat, pts[0].lng], 10);
+  else map.setView([15, 100], 2);
+}
+async function openWhere(){
+  try{
+    await loadLeaflet();
+    if(!map){
+      map = L.map("map", { zoomControl:false, attributionControl:true, worldCopyJump:true }).setView([15,100], 2);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        subdomains:"abcd", maxZoom:18,
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+      }).addTo(map);
+      L.control.zoom({position:"bottomright"}).addTo(map);
+    }
+    $("#mapMsg").textContent = "";
+    setTimeout(()=>{ map.invalidateSize(); renderWhere(); }, 60);
+  }catch(e){ $("#mapMsg").textContent = "Couldn't load the map. Check your internet."; }
+}
+$("#whoCards").addEventListener("click", async e=>{
+  if(!e.target.closest("#stopShare")) return;
+  if(!confirm("Stop sharing your location? Your pin will disappear for both of you.")) return;
+  try{ await deleteDoc(doc(db,"locations",me.uid)); }catch(err){ alert("Couldn't stop sharing. Check your internet and try again."); }
+});
+function getPosition(){
+  return new Promise((res, rej)=>{
+    if(!navigator.geolocation) return rej(new Error("nogeo"));
+    navigator.geolocation.getCurrentPosition(p => res(p.coords), err => rej(err), {enableHighAccuracy:false, timeout:15000, maximumAge:300000});
+  });
+}
+async function cityFor(lat, lng){
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=en&lat=${lat}&lon=${lng}`);
+    const j = await r.json(), a = j.address || {};
+    const place = a.city || a.town || a.village || a.suburb || a.county || a.state || "";
+    return [place, a.country].filter(Boolean).join(", ");
+  }catch(e){ return ""; }
+}
+
 /* ============ daily check-ins ============ */
 const pad = n => String(n).padStart(2,"0");
 const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -993,6 +1141,7 @@ const render = {
 render.checkins = renderCheckins;
 render.answers = renderAnswers;
 render.voices = renderVoices;
+render.locations = renderWhere;
 
 /* ============ sheet ============ */
 let lastFocus = null;
@@ -1129,6 +1278,21 @@ const FORMS = {
   note:{ title:"Leave a note", html:`
     <label>It shows on the home page for both of you</label><textarea name="note" maxlength="400" required></textarea>`,
     async save(f){ return [{home:{ note:f.elements.note.value.trim(), noteBy:me.uid, noteByName:me.name, noteAt:serverTimestamp(), reactions:deleteField() }}]; } },
+  loc:{ title:"Share my location", html:`
+    <p style="margin:6px 0 0;color:var(--soft)">Only you two can see this. You can stop sharing anytime.</p>
+    <div class="choice">
+      <label><input type="radio" name="prec" value="area" checked><span>Just my area<small>Rough spot, about 1 km. Shows your city.</small></span></label>
+      <label><input type="radio" name="prec" value="exact"><span>Exact spot<small>Where your phone is right now.</small></span></label>
+    </div>`,
+    async save(f){
+      let c;
+      try{ c = await getPosition(); }
+      catch(err){ throw new Error(err && err.code === 1 ? "denied" : "nogeo"); }
+      const exact = f.elements.prec.value === "exact";
+      const round = n => exact ? Number(n.toFixed(5)) : Number(n.toFixed(2));
+      const lat = round(c.latitude), lng = round(c.longitude);
+      return [{coll:"locations", id:me.uid, data:{ lat, lng, exact, city: await cityFor(lat, lng), tz: Intl.DateTimeFormat().resolvedOptions().timeZone, updatedAt: serverTimestamp() }}];
+    } },
   answer:{ title:"Question of the day", html:()=>{ const a = S.answers.find(x => x.day===qDay && x.by===me.uid) || {}; return `
     <p class="hand" style="font-size:28px;margin:6px 0 0">${esc(qText)}</p>
     <label>Your answer</label><textarea name="text" maxlength="500" required>${esc(a.text||"")}</textarea>`; },
@@ -1192,8 +1356,9 @@ function openForm(kind){
       closeSheet();
     }catch(err){
       console.error(err);
-      errEl.textContent = err.message==="too big" || err.message==="unreadable"
-        ? "That photo couldn't be used. Try a different one."
+      errEl.textContent = err.message==="too big" || err.message==="unreadable" ? "That photo couldn't be used. Try a different one."
+        : err.message==="denied" ? "Location is blocked. Allow location for this site in your browser settings, then try again."
+        : err.message==="nogeo" ? "Couldn't get your location. Turn on location and try again."
         : "Couldn't save. Check your internet and try again.";
       btn.disabled = false; btn.textContent = "Save";
     }
@@ -1248,7 +1413,8 @@ const buddies = [
 /* ============ add button + tabs ============ */
 let tab = "home";
 function updateFab(){
-  const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"], letters: lview==="voice" ? ["voice","🎙️ Record a voice note"] : ["letter","💌 Write a letter"],
+  const map = { home:["note","✏️ Leave a note"], us: usView==="story" ? ["memory","+ Add memory"] : ["pics","+ Add pics"], places:["place","+ Add a place"],
+    where: ["loc", me && S.locations.some(l=>l.by===me.uid) ? "📍 Update my location" : "📍 Share my location"], letters: lview==="voice" ? ["voice","🎙️ Record a voice note"] : ["letter","💌 Write a letter"],
     daily: ["checkin", me && myToday() ? "✏️ Edit today's check-in" : "☀️ Check in today"] };
   const [kind, label] = map[tab];
   $("#fab").textContent = label; $("#fab").dataset.kind = kind;
@@ -1262,6 +1428,7 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click", (
   b.setAttribute("aria-current","page");
   document.querySelectorAll("section").forEach(s=>s.classList.toggle("on", s.id===tab));
   updateFab(); window.scrollTo(0,0);
+  if(tab === "where") openWhere();
 }));
 updateFab();
 </script>
