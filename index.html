@@ -255,7 +255,7 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 .apart{font-size:30px;margin:0 0 14px}
 .map-wrap{position:relative;margin:0 -20px;border-radius:28px;overflow:hidden;border:1.5px solid var(--line);background:#f6ece6;height:52vh;min-height:300px;width:calc(100% + 40px)}
 #map{position:absolute;inset:0}
-#map .leaflet-tile-pane{filter:sepia(.18) saturate(1.15) hue-rotate(-12deg) brightness(1.02)}
+#map .leaflet-tile-pane{filter:saturate(.65) sepia(.22) hue-rotate(-14deg) brightness(1.06) contrast(.92)}
 .map-msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--soft);padding:20px;z-index:500;pointer-events:none}
 .pin{display:flex;flex-direction:column;align-items:center}
 .pin .bubble{width:58px;height:58px;border-radius:50%;background:#fffdf9;border:3px solid #ffb8a3;display:grid;place-items:center;box-shadow:0 6px 14px -6px rgba(59,42,74,.5);animation:pinbob 2.4s ease-in-out infinite}
@@ -1009,9 +1009,9 @@ async function openWhere(){
     await loadLeaflet();
     if(!map){
       map = L.map("map", { zoomControl:false, attributionControl:true, worldCopyJump:true }).setView([15,100], 2);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        subdomains:"abcd", maxZoom:18,
-        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom:19,
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }).addTo(map);
       L.control.zoom({position:"bottomright"}).addTo(map);
     }
