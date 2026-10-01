@@ -69,7 +69,7 @@ section.on{display:block}
 .sky{position:relative;margin:16px -20px 0;height:300px;overflow:hidden;border-radius:0 0 36px 36px}
 .sky.day{background:linear-gradient(#ffd9c7,#ffeede 55%,var(--bg))}
 .sky.night{background:linear-gradient(var(--night),var(--night2))}
-.orb{position:absolute;right:34px;top:40px;width:64px;height:64px;border-radius:50%}
+.orb{position:absolute;right:34px;top:78px;width:64px;height:64px;border-radius:50%}
 .sky.day .orb{background:#ffbf6b;box-shadow:0 0 60px 18px rgba(255,191,107,.55)}
 .sky.night .orb{background:#fff4d6;box-shadow:0 0 40px 10px rgba(255,244,214,.3)}
 .sky.night .orb::after{content:"";position:absolute;inset:-4px -4px 10px 14px;border-radius:50%;background:var(--night)}
@@ -331,6 +331,23 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 .levels label:has(input:checked){background:var(--blush);border-color:var(--blush);color:#3b2a4a}
 .levels b{font-size:26px}
 .quote{background:var(--bg);border-radius:14px;padding:10px 14px;margin-top:6px;font-family:var(--hand);font-size:24px;line-height:1.15}
+
+/* ============ notifications ============ */
+#bell{position:fixed;z-index:26;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:46px;height:46px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);font-size:21px;cursor:pointer;box-shadow:0 8px 20px -12px rgba(20,16,40,.5)}
+#bell .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#f0627e;color:#fff;font-size:12px;font-weight:800;line-height:20px;text-align:center;border:2px solid var(--card)}
+#bell.ring{animation:ring .7s ease-in-out}
+@keyframes ring{20%{transform:rotate(14deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-4deg)}}
+#notifPanel{position:fixed;z-index:27;top:calc(66px + env(safe-area-inset-top,0px));right:12px;width:min(360px,calc(100vw - 24px));max-height:min(70vh,560px);overflow-y:auto;background:var(--card);border:1.5px solid var(--line);border-radius:20px;box-shadow:0 18px 40px -16px rgba(20,16,40,.55);padding:8px}
+#notifPanel h3{font-family:var(--hand);font-weight:400;font-size:32px;margin:6px 10px 4px}
+.nt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:none;border:0;border-radius:14px;padding:10px;cursor:pointer;position:relative}
+.nt:hover{background:var(--bg)}
+.nt .ic{font-size:22px;line-height:1.2;flex:none}
+.nt .tx{font-size:15px;line-height:1.3;flex:1;min-width:0;overflow-wrap:anywhere}
+.nt .tx b{font-weight:800}
+.nt .tm{display:block;font-size:12px;color:var(--soft);margin-top:2px}
+.nt.new{background:color-mix(in srgb,var(--blush) 22%,transparent)}
+.nt.new::after{content:"";position:absolute;top:14px;right:10px;width:8px;height:8px;border-radius:50%;background:#f0627e}
+.nt-empty{padding:24px 12px;text-align:center;color:var(--soft)}
 
 /* ============ wandering buddy ============ */
 .buddy{position:fixed;left:0;top:0;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
@@ -604,6 +621,8 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
   <button class="lb-del" id="lbDel" hidden>Delete this photo</button>
 </div>
 
+<button id="bell" hidden aria-label="Notifications" aria-expanded="false" aria-controls="notifPanel">🔔<span class="badge" id="bellBadge" hidden></span></button>
+<div id="notifPanel" hidden role="dialog" aria-label="Notifications"><h3>what's new</h3><div id="notifList"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="veil"></div>
 <div id="sheet" role="dialog" aria-modal="true">
@@ -688,7 +707,7 @@ onAuthStateChanged(auth, user => {
     const g=$("#gate");
     if(!g.hidden && !$("#gateForm").hidden){ g.classList.add("leaving"); setTimeout(()=>{ g.hidden=true; g.classList.remove("leaving"); },900); }
     else g.hidden = true;
-    $("#fab").hidden = false;
+    $("#fab").hidden = false; $("#bell").hidden = false; prevUnread = -1;
     if(buddies[0].el.hidden) buddies.forEach(b=>b.start());
     startListening();
     renderHome(); renderThoughts(); renderAnswers(); renderVoices(); renderWhere(); renderLists(); renderComplaints();
@@ -696,7 +715,7 @@ onAuthStateChanged(auth, user => {
     me = null;
     $("#gate").hidden = false;
     $("#gateForm").hidden = false;
-    $("#fab").hidden = true;
+    $("#fab").hidden = true; $("#bell").hidden = true; if(notifOpen) toggleNotifs(false);
   }
 });
 
@@ -726,6 +745,7 @@ function startListening(){
     unsubs.push(onSnapshot(collection(db,c), snap=>{
       S[c] = snap.docs.map(d=>({id:d.id, ...d.data()}));
       render[c]();
+      renderNotifs();
     }, err=>console.error(c, err)));
   }
   let firstThoughts = true;
@@ -736,11 +756,11 @@ function startListening(){
     }
     firstThoughts = false;
     S.thoughts = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderThoughts();
+    renderThoughts(); renderNotifs();
   }, err=>console.error("thoughts", err)));
   unsubs.push(onSnapshot(doc(db,"meta","home"), snap=>{
     S.home = snap.exists() ? snap.data() : {};
-    renderHome();
+    renderHome(); renderNotifs();
   }, err=>console.error("home", err)));
 }
 
@@ -787,7 +807,8 @@ async function react(e){
   try{
     await updateDoc(doc(db,"meta","home"), {
       [`reactions.${me.uid}`]: e === mine ? deleteField() : e,
-      [`reactNames.${me.uid}`]: me.name
+      [`reactNames.${me.uid}`]: me.name,
+      [`reactAt.${me.uid}`]: serverTimestamp()
     });
   }catch(err){ console.error(err); alert("Couldn't react. Check your internet and try again."); }
   renderHome();
@@ -1173,7 +1194,7 @@ $("#lists").addEventListener("click", async e=>{
   const t = e.target.closest("[data-tick]");
   if(t){
     const w = S.lists.find(x=>x.id===t.dataset.tick); if(!w) return;
-    try{ await updateDoc(doc(db,"lists",w.id), w.done ? {done:false, doneAt:deleteField()} : {done:true, doneAt:serverTimestamp()}); }
+    try{ await updateDoc(doc(db,"lists",w.id), w.done ? {done:false, doneAt:deleteField(), doneBy:deleteField()} : {done:true, doneAt:serverTimestamp(), doneBy:me.uid, doneByName:me.name}); }
     catch(err){ alert("Couldn't update. Check your internet and try again."); }
     return;
   }
@@ -1240,6 +1261,89 @@ $("#complain").addEventListener("click", async e=>{
     try{ await deleteDoc(doc(db,"complaints",d.dataset.cdel)); }catch(err){ alert("Couldn't withdraw. Check your internet and try again."); }
   }
 });
+
+/* ============ notifications ============ */
+const tms = t => t?.toMillis ? t.toMillis() : 0;
+function buildFeed(){
+  const ev = [], add = (by, t, ic, text, go) => { if(t) ev.push({ mine: by===me.uid, t, ic, text, go }); };
+  const nm = (by, byName) => by===me.uid ? "You" : (byName || nameOther());
+  const cut = (x, n=40) => { x = String(x||""); return x.length>n ? x.slice(0,n-1)+"…" : x; };
+  for(const m of S.memories) add(m.by, ms(m), "📷", `<b>${esc(nm(m.by,m.byName))}</b> added a memory: ${esc(cut(m.title))}`, {tab:"us"});
+  // group photos per person within 15 min
+  const ph = [...S.photos].sort((a,b)=>ms(a)-ms(b)); let grp = null;
+  for(const p of ph){
+    if(grp && grp.by===p.by && ms(p)-grp.last < 9e5){ grp.n++; grp.last = ms(p); }
+    else { if(grp) add(grp.by, grp.last, "🖼️", `<b>${esc(nm(grp.by,grp.byName))}</b> added ${grp.n===1?"a photo":grp.n+" photos"}`, {tab:"us"}); grp = { by:p.by, byName:p.byName, n:1, last:ms(p) }; }
+  }
+  if(grp) add(grp.by, grp.last, "🖼️", `<b>${esc(nm(grp.by,grp.byName))}</b> added ${grp.n===1?"a photo":grp.n+" photos"}`, {tab:"us"});
+  for(const l of S.letters) add(l.by, ms(l), "💌", `<b>${esc(nm(l.by,l.byName))}</b> wrote a letter: open when ${esc(cut(l.when))}`, {tab:"letters"});
+  for(const c of S.checkins) add(c.by, ms(c), "☀️", `<b>${esc(nm(c.by,c.byName))}</b> checked in ${esc(c.mood||"")}`, {tab:"daily"});
+  for(const a of S.answers) add(a.by, ms(a), "❓", `<b>${esc(nm(a.by,a.byName))}</b> answered the question of the day`, {tab:"daily"});
+  for(const v of S.voices) add(v.by, ms(v), "🎙️", `<b>${esc(nm(v.by,v.byName))}</b> sent a voice note${v.title?`: ${esc(cut(v.title))}`:""}`, {tab:"letters", sub:"voice"});
+  for(const x of S.lists){
+    if(x.kind==="song") add(x.by, ms(x), "🎵", `<b>${esc(nm(x.by,x.byName))}</b> added a song: ${esc(cut(x.title))}`, {tab:"lists", sub:"songs"});
+    else {
+      add(x.by, ms(x), "🍿", `<b>${esc(nm(x.by,x.byName))}</b> added ${esc(cut(x.title))} to watch`, {tab:"lists"});
+      if(x.done && x.doneBy) add(x.doneBy, tms(x.doneAt), "✅", `<b>${esc(nm(x.doneBy,x.doneByName))}</b> marked ${esc(cut(x.title))} as watched`, {tab:"lists"});
+    }
+  }
+  for(const c of S.complaints){
+    add(c.by, ms(c), "😤", `<b>${esc(nm(c.by,c.byName))}</b> filed a complaint: ${esc(cut(c.text))}`, {tab:"complain"});
+    if(c.respondedAt && c.respondedBy) add(c.respondedBy, tms(c.respondedAt), {resolved:"✅",sorry:"🙏",denied:"😏"}[c.status]||"✅", `<b>${esc(nm(c.respondedBy))}</b> responded to a complaint: ${esc(STATUS[c.status]||"")}`, {tab:"complain"});
+    if(c.voucherUsed && c.voucherUsedAt) add(c.by, tms(c.voucherUsedAt), "🎟️", `<b>${esc(nm(c.by,c.byName))}</b> redeemed a voucher: ${esc(cut(c.voucher))}`, {tab:"complain"});
+  }
+  for(const l of S.locations) add(l.by, tms(l.updatedAt), "📍", `<b>${esc(nm(l.by,l.byName))}</b> updated ${l.by===me.uid?"your":"their"} location${l.city?` (${esc(cut(l.city,30))})`:""}`, {tab:"where"});
+  const h = S.home || {};
+  if(h.note && h.noteBy) add(h.noteBy, tms(h.noteAt), "✏️", `<b>${esc(nm(h.noteBy,h.noteByName))}</b> left a new note`, {tab:"home"});
+  for(const [uid, e] of Object.entries(h.reactions||{})) if(e) add(uid, tms(h.reactAt?.[uid]), "😊", `<b>${esc(nm(uid, h.reactNames?.[uid]))}</b> reacted ${esc(e)} to the note`, {tab:"home"});
+  if(h.reunion && h.reunionBy) add(h.reunionBy, tms(h.reunionAt), "📅", `<b>${esc(nm(h.reunionBy,h.reunionByName))}</b> set the day you see each other again`, {tab:"home"});
+  // hearts: one line per person per day
+  const hearts = {};
+  for(const t of S.thoughts){ const d = new Date(ms(t)), k = `${t.by}|${dayKey(d)}`; (hearts[k] ??= {by:t.by, n:0, last:0}); hearts[k].n++; hearts[k].last = Math.max(hearts[k].last, ms(t)); }
+  for(const g of Object.values(hearts)) add(g.by, g.last, "💛", g.by===me.uid ? `<b>You</b> sent ${g.n} ${g.n===1?"heart":"hearts"}` : `<b>${esc(nameOther())}</b> thought of you ${g.n} ${g.n===1?"time":"times"}`, {tab:"home"});
+  return ev.sort((a,b)=>b.t-a.t).slice(0,50);
+}
+const seenKey = () => `notifSeen_${me.uid}`;
+function lastSeen(){
+  let v = local.get(seenKey());
+  if(!v){ v = Date.now() - 2*864e5; local.set(seenKey(), v); }
+  return v;
+}
+let notifOpen = false, unreadBefore = 0, prevUnread = -1, panelSeen = 0;
+function renderNotifs(){
+  if(!me) return;
+  const feed = buildFeed(), seen = notifOpen ? panelSeen : lastSeen();
+  const unread = feed.filter(e => !e.mine && e.t > lastSeen()).length;
+  const b = $("#bellBadge");
+  b.hidden = !unread; b.textContent = unread > 9 ? "9+" : unread;
+  if(prevUnread >= 0 && unread > prevUnread){ const bell = $("#bell"); bell.classList.remove("ring"); void bell.offsetWidth; bell.classList.add("ring"); }
+  prevUnread = unread;
+  S.feed = feed;
+  $("#notifList").innerHTML = feed.length ? feed.map((e,i)=>`
+    <button class="nt${!e.mine && e.t > seen ? " new" : ""}" data-n="${i}"><span class="ic">${e.ic}</span><span class="tx">${e.text}<span class="tm">${esc(ago(e.t))}</span></span></button>`).join("")
+    : `<div class="nt-empty">Nothing yet. Start adding stuff 💛</div>`;
+}
+function toggleNotifs(open){
+  notifOpen = open ?? !notifOpen;
+  $("#notifPanel").hidden = !notifOpen;
+  $("#bell").setAttribute("aria-expanded", notifOpen);
+  if(notifOpen){ panelSeen = lastSeen(); local.set(seenKey(), Date.now()); }
+  renderNotifs();
+}
+$("#bell").addEventListener("click", e=>{ e.stopPropagation(); toggleNotifs(); });
+document.addEventListener("click", e=>{ if(notifOpen && !e.target.closest("#notifPanel") && !e.target.closest("#bell")) toggleNotifs(false); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && notifOpen) toggleNotifs(false); });
+$("#notifList").addEventListener("click", e=>{
+  const b = e.target.closest(".nt"); if(!b) return;
+  const ev = S.feed[+b.dataset.n]; if(!ev) return;
+  toggleNotifs(false);
+  document.querySelector(`nav button[data-tab="${ev.go.tab}"]`)?.click();
+  if(ev.go.sub==="voice") document.querySelector('#lseg button[data-lview="voice"]')?.click();
+  if(ev.go.tab==="letters" && !ev.go.sub) document.querySelector('#lseg button[data-lview="letters"]')?.click();
+  if(ev.go.sub==="songs") document.querySelector('#wseg button[data-wview="songs"]')?.click();
+  if(ev.go.tab==="lists" && !ev.go.sub) document.querySelector('#wseg button[data-wview="watch"]')?.click();
+});
+setInterval(()=>{ if(me && notifOpen) renderNotifs(); }, 60000);
 
 /* ============ daily check-ins ============ */
 const pad = n => String(n).padStart(2,"0");
@@ -1498,7 +1602,7 @@ const FORMS = {
     check(f){ return f.elements.voucher.value==="__custom" && !f.elements.custom.value.trim() ? "Write your custom voucher first." : ""; },
     async save(f, c){
       const v = f.elements.voucher.value === "__custom" ? f.elements.custom.value.trim() : f.elements.voucher.value;
-      const data = { status:f.elements.status.value, reply:f.elements.reply.value.trim(), voucher:v, respondedAt:serverTimestamp() };
+      const data = { status:f.elements.status.value, reply:f.elements.reply.value.trim(), voucher:v, respondedAt:serverTimestamp(), respondedBy:me.uid };
       if(v !== (c.voucher||"")){ data.voucherUsed = false; }
       return [{coll:"complaints", id:c.id, update:true, data}];
     } },
@@ -1568,7 +1672,7 @@ const FORMS = {
     async save(f){ const c = myToday() || {}; return [{coll:"checkins", id:`${me.uid}_${todayKey()}`, data:{ date:todayKey(), mood:f.elements.mood.value, text:f.elements.text.value.trim(), photo: f.elements.photo.files[0] ? await shrink(f.elements.photo.files[0]) : (c.photo||"") }}]; } },
   reunion:{ title:"When do we meet again?", html:`
     <label>Pick the date</label><input type="date" name="reunion" min="${today}" required>`,
-    async save(f){ return [{home:{ reunion:f.elements.reunion.value }}]; } }
+    async save(f){ return [{home:{ reunion:f.elements.reunion.value, reunionBy:me.uid, reunionByName:me.name, reunionAt:serverTimestamp() }}]; } }
 };
 
 function freeSpot(){
