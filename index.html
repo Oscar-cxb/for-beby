@@ -349,6 +349,50 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 .nt.new::after{content:"";position:absolute;top:14px;right:10px;width:8px;height:8px;border-radius:50%;background:#f0627e}
 .nt-empty{padding:24px 12px;text-align:center;color:var(--soft)}
 
+/* ============ top-left buttons ============ */
+.topbtn{position:fixed;z-index:26;top:calc(12px + env(safe-area-inset-top,0px));width:46px;height:46px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);font-size:21px;cursor:pointer;box-shadow:0 8px 20px -12px rgba(20,16,40,.5);padding:0}
+#jarBtn{left:12px}
+#petBtn{left:66px;overflow:visible}
+#petBtn svg{width:34px;height:28px;display:block;margin:4px auto 0}
+#petBtn .pbar{position:absolute;left:9px;right:9px;bottom:6px;height:4px;border-radius:9px;background:var(--line);overflow:hidden}
+#petBtn .pbar i{display:block;height:100%;background:#7cc68d;border-radius:9px}
+.topbtn .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#f0627e;color:#fff;font-size:12px;font-weight:800;line-height:20px;text-align:center;border:2px solid var(--card)}
+#petBtn .badge{background:var(--card);color:inherit;font-size:13px;border-color:var(--line)}
+
+/* ============ love jar ============ */
+.jar-wrap{text-align:center}
+.jar-svg{width:170px;height:200px;cursor:pointer;display:block;margin:6px auto 0;-webkit-tap-highlight-color:transparent}
+.jar-svg.shake{animation:jshake .6s ease-in-out}
+@keyframes jshake{15%{transform:rotate(-8deg)}30%{transform:rotate(7deg)}45%{transform:rotate(-6deg)}60%{transform:rotate(4deg)}75%{transform:rotate(-2deg)}}
+.jar-count{color:var(--soft);font-size:15px;margin:6px 0 0}
+.slip{position:relative;margin:16px auto 4px;max-width:340px;background:#fffbe8;color:#3b2a4a;border-radius:6px;padding:18px 18px 14px;box-shadow:0 10px 22px -12px rgba(59,42,74,.55);transform:rotate(-2deg);animation:slipin .5s cubic-bezier(.2,.9,.3,1.3)}
+.slip::before{content:"";position:absolute;inset:0;border-radius:6px;background:repeating-linear-gradient(transparent 0 29px,rgba(201,184,240,.35) 29px 30px);pointer-events:none}
+.slip p{position:relative;font-family:var(--hand);font-size:28px;line-height:1.07;margin:0;white-space:pre-line}
+.slip small{position:relative;display:block;text-align:right;color:#8a7896;font-size:13px;margin-top:8px}
+@keyframes slipin{0%{opacity:0;transform:translateY(40px) rotate(6deg) scale(.7)}100%{opacity:1;transform:rotate(-2deg)}}
+.mynotes{margin-top:18px;text-align:left}
+.mynotes .mn{display:flex;gap:8px;align-items:flex-start;border-top:1.5px dashed var(--line);padding:8px 0}
+.mynotes .mn p{flex:1;margin:0;font-family:var(--hand);font-size:22px;line-height:1.1}
+
+/* ============ capy pet ============ */
+.pet{text-align:center}
+.pet-name{font-family:var(--hand);font-size:42px;margin:0;line-height:1}
+.pet-rename{background:none;border:0;color:var(--soft);text-decoration:underline;font-size:13px;cursor:pointer}
+.pet-stage{position:relative;margin:10px auto 0;width:220px;height:170px}
+.pet-stage svg{width:100%;height:100%}
+.pet-stage .pc{transform-origin:50% 90%;animation:breathe 3s ease-in-out infinite}
+.pet-stage .pc.boing{animation:boing .6s ease-out}
+@keyframes breathe{50%{transform:scale(1.025,.985)}}
+@keyframes boing{30%{transform:translateY(-18px) scale(.96,1.05)}60%{transform:translateY(0) scale(1.06,.94)}100%{transform:none}}
+.pet-mood{font-weight:800;font-size:18px;margin:4px 0 6px}
+.hbar{height:14px;border-radius:999px;background:var(--line);overflow:hidden;max-width:300px;margin:0 auto}
+.hbar i{display:block;height:100%;border-radius:999px;transition:width .6s ease}
+.pet-last{color:var(--soft);font-size:14px;margin-top:8px}
+.pet-acts{display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.pet-acts button{border:1.5px solid var(--line);background:var(--card);border-radius:18px;padding:12px 16px;font-weight:800;font-size:16px;cursor:pointer;min-width:88px}
+.pet-acts button span{display:block;font-size:30px}
+.pet-acts button:active{transform:scale(.95)}
+
 /* ============ wandering buddy ============ */
 .buddy{position:fixed;left:0;top:0;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .buddy.doll{width:54px;height:74px}
@@ -621,6 +665,8 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
   <button class="lb-del" id="lbDel" hidden>Delete this photo</button>
 </div>
 
+<button id="jarBtn" class="topbtn" hidden aria-label="Love jar">🫙<span class="badge" id="jarBadge" hidden></span></button>
+<button id="petBtn" class="topbtn" hidden aria-label="Capy pet"><span id="petIcon"></span><span class="pbar"><i id="petMini"></i></span><span class="badge" id="petBadge" hidden>🥺</span></button>
 <button id="bell" hidden aria-label="Notifications" aria-expanded="false" aria-controls="notifPanel">🔔<span class="badge" id="bellBadge" hidden></span></button>
 <div id="notifPanel" hidden role="dialog" aria-label="Notifications"><h3>what's new</h3><div id="notifList"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -681,7 +727,7 @@ const ms = d => d?.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now();
 const fmtDate = s => { if(!s) return ""; const d = new Date(s + "T00:00:00"); return isNaN(d) ? s : d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); };
 
 let me = null;
-const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], locations:[], lists:[], complaints:[], home:{} };
+const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], locations:[], lists:[], complaints:[], jar:[], pet:{}, home:{} };
 let unsubs = [];
 
 function sprinkle(el, n){
@@ -707,7 +753,7 @@ onAuthStateChanged(auth, user => {
     const g=$("#gate");
     if(!g.hidden && !$("#gateForm").hidden){ g.classList.add("leaving"); setTimeout(()=>{ g.hidden=true; g.classList.remove("leaving"); },900); }
     else g.hidden = true;
-    $("#fab").hidden = false; $("#bell").hidden = false; prevUnread = -1;
+    $("#fab").hidden = false; $("#bell").hidden = false; $("#jarBtn").hidden = false; $("#petBtn").hidden = false; prevUnread = -1;
     if(buddies[0].el.hidden) buddies.forEach(b=>b.start());
     startListening();
     renderHome(); renderThoughts(); renderAnswers(); renderVoices(); renderWhere(); renderLists(); renderComplaints();
@@ -715,7 +761,7 @@ onAuthStateChanged(auth, user => {
     me = null;
     $("#gate").hidden = false;
     $("#gateForm").hidden = false;
-    $("#fab").hidden = true; $("#bell").hidden = true; if(notifOpen) toggleNotifs(false);
+    $("#fab").hidden = true; $("#bell").hidden = true; $("#jarBtn").hidden = true; $("#petBtn").hidden = true; if(notifOpen) toggleNotifs(false);
   }
 });
 
@@ -758,6 +804,14 @@ function startListening(){
     S.thoughts = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderThoughts(); renderNotifs();
   }, err=>console.error("thoughts", err)));
+  unsubs.push(onSnapshot(collection(db,"jar"), snap=>{
+    S.jar = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderJarBtn(); if(panel==="jar") renderJar(); renderNotifs();
+  }, err=>console.error("jar", err)));
+  unsubs.push(onSnapshot(doc(db,"meta","pet"), snap=>{
+    S.pet = snap.exists() ? snap.data() : {};
+    renderPetBtn(); if(panel==="pet") renderPet(); renderNotifs();
+  }, err=>console.error("pet", err)));
   unsubs.push(onSnapshot(doc(db,"meta","home"), snap=>{
     S.home = snap.exists() ? snap.data() : {};
     renderHome(); renderNotifs();
@@ -1293,6 +1347,8 @@ function buildFeed(){
     if(c.voucherUsed && c.voucherUsedAt) add(c.by, tms(c.voucherUsedAt), "🎟️", `<b>${esc(nm(c.by,c.byName))}</b> redeemed a voucher: ${esc(cut(c.voucher))}`, {tab:"complain"});
   }
   for(const l of S.locations) add(l.by, tms(l.updatedAt), "📍", `<b>${esc(nm(l.by,l.byName))}</b> updated ${l.by===me.uid?"your":"their"} location${l.city?` (${esc(cut(l.city,30))})`:""}`, {tab:"where"});
+  for(const n of S.jar) add(n.by, ms(n), "🫙", `<b>${esc(nm(n.by,n.byName))}</b> put a note in the love jar`, {jar:true});
+  const pl = S.pet?.last; if(pl && pl.by) add(pl.by, tms(pl.at), PET_ACTS[pl.type]?.e || "🦫", `<b>${esc(nm(pl.by,pl.byName))}</b> ${PET_ACTS[pl.type]?.past || "visited"} ${esc(petName())}`, {pet:true});
   const h = S.home || {};
   if(h.note && h.noteBy) add(h.noteBy, tms(h.noteAt), "✏️", `<b>${esc(nm(h.noteBy,h.noteByName))}</b> left a new note`, {tab:"home"});
   for(const [uid, e] of Object.entries(h.reactions||{})) if(e) add(uid, tms(h.reactAt?.[uid]), "😊", `<b>${esc(nm(uid, h.reactNames?.[uid]))}</b> reacted ${esc(e)} to the note`, {tab:"home"});
@@ -1337,6 +1393,8 @@ $("#notifList").addEventListener("click", e=>{
   const b = e.target.closest(".nt"); if(!b) return;
   const ev = S.feed[+b.dataset.n]; if(!ev) return;
   toggleNotifs(false);
+  if(ev.go.jar) return openJar();
+  if(ev.go.pet) return openPet();
   document.querySelector(`nav button[data-tab="${ev.go.tab}"]`)?.click();
   if(ev.go.sub==="voice") document.querySelector('#lseg button[data-lview="voice"]')?.click();
   if(ev.go.tab==="letters" && !ev.go.sub) document.querySelector('#lseg button[data-lview="letters"]')?.click();
@@ -1344,6 +1402,130 @@ $("#notifList").addEventListener("click", e=>{
   if(ev.go.tab==="lists" && !ev.go.sub) document.querySelector('#wseg button[data-wview="watch"]')?.click();
 });
 setInterval(()=>{ if(me && notifOpen) renderNotifs(); }, 60000);
+
+/* ============ love jar ============ */
+let panel = null, lastSlip = null;
+const jarReadKey = () => `jarRead_${me.uid}`;
+const jarRead = () => new Set(local.get(jarReadKey())||[]);
+function jarSVG(n){
+  const cols = ["#ffc4b0","#c9b8f0","#ffe08a","#b8e3c4","#ffb3c7","#bfe0ff"];
+  let slips = "";
+  for(let i=0;i<Math.min(n,18);i++){
+    const row = Math.floor(i/4), col = i%4;
+    const x = 36 + col*24 + (row%2?10:0), y = 158 - row*17, r = ((i*37)%30)-15;
+    slips += `<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-10" y="-6" width="20" height="12" rx="3" fill="${cols[i%cols.length]}"/><path d="M-3 -1 a2 2 0 0 1 3 -1 a2 2 0 0 1 3 1 l-3 3 z" fill="#fff" opacity=".8"/></g>`;
+  }
+  return `<svg class="jar-svg" id="jarSvg" viewBox="0 0 170 200" role="button" tabindex="0" aria-label="Tap the jar to pull a note">
+    <rect x="44" y="14" width="82" height="20" rx="6" fill="#d9a46a"/><rect x="44" y="26" width="82" height="6" fill="#c48f57"/>
+    <path d="M40 40 h90 q12 0 12 14 v116 q0 22 -22 22 h-70 q-22 0 -22 -22 v-116 q0 -14 12 -14 z" fill="rgba(220,236,255,.35)" stroke="#a9c3e0" stroke-width="3"/>
+    <rect x="34" y="34" width="102" height="10" rx="5" fill="#bcd3ea"/>
+    ${slips}
+    <path d="M52 60 q-4 40 0 90" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".6"/>
+    <path d="M70 98 q-12 -14 0 -20 q8 -4 15 5 q7 -9 15 -5 q12 6 0 20 l-15 13 z" fill="#f59bb5" opacity="${n?0:.9}"/>
+  </svg>`;
+}
+function renderJarBtn(){
+  if(!me) return;
+  const read = jarRead(), unread = S.jar.filter(n => n.by!==me.uid && !read.has(n.id)).length;
+  $("#jarBadge").hidden = !unread; $("#jarBadge").textContent = unread > 9 ? "9+" : unread;
+}
+function renderJar(){
+  const read = jarRead(), o = esc(nameOther());
+  const theirs = S.jar.filter(n => n.by!==me.uid), mine = S.jar.filter(n => n.by===me.uid).sort((a,b)=>ms(b)-ms(a));
+  const unread = theirs.filter(n=>!read.has(n.id)).length;
+  $("#sheetContent").innerHTML = `<div class="jar-wrap">
+    <h2>love jar</h2>
+    ${jarSVG(theirs.length)}
+    <p class="jar-count">${theirs.length ? `${theirs.length} ${theirs.length===1?"note":"notes"} from ${o}${unread?` · <b>${unread} new</b>`:""} · tap the jar` : `No notes from ${o} yet. Fill the jar for them first 💛`}</p>
+    <div id="slipBox">${lastSlip ? slipHTML(lastSlip) : ""}</div>
+    <div class="sheet-actions"><button class="btn primary" data-jar="add">+ Put a note in for ${o}</button><button class="btn" data-close>Close</button></div>
+    ${mine.length ? `<details class="mynotes"><summary class="by" style="cursor:pointer">Notes you put in (${mine.length})</summary>${mine.map(n=>`<div class="mn"><p>${esc(n.text)}</p><button class="mini" data-jardel="${n.id}" style="background:none;border:0;color:var(--soft);text-decoration:underline;cursor:pointer;font-size:13px">remove</button></div>`).join("")}</details>` : ""}
+  </div>`;
+}
+const slipHTML = n => `<div class="slip"><p>${esc(n.text)}</p><small>from ${esc(who(n))} 💛</small></div>`;
+function pullNote(){
+  const theirs = S.jar.filter(n => n.by!==me.uid); if(!theirs.length) return;
+  const read = jarRead(), fresh = theirs.filter(n=>!read.has(n.id));
+  const pool = fresh.length ? fresh : theirs.filter(n => n.id !== lastSlip?.id);
+  const n = (pool.length ? pool : theirs)[Math.floor(Math.random()*(pool.length||theirs.length))];
+  read.add(n.id); local.set(jarReadKey(), [...read]);
+  const svg = $("#jarSvg"); svg.classList.remove("shake"); void svg.getBoundingClientRect(); svg.classList.add("shake");
+  setTimeout(()=>{ lastSlip = n; renderJar(); renderJarBtn(); }, 550);
+}
+function openJar(){ panel = "jar"; lastSlip = null; openSheet(""); renderJar(); }
+$("#jarBtn").addEventListener("click", openJar);
+
+/* ============ capy pet ============ */
+const PET_DECAY = 3;   // happiness lost per hour
+const PET_ACTS = { feed:{ e:"🍊", l:"Feed", gain:18, past:"fed" }, pet:{ e:"🤗", l:"Pet", gain:10, past:"pet" }, play:{ e:"🦆", l:"Play", gain:14, past:"played with" } };
+function petNow(){
+  const p = S.pet || {}, base = typeof p.points === "number" ? p.points : 70, t = tms(p.updatedAt);
+  return Math.max(0, Math.min(100, base - (t ? (Date.now()-t)/36e5*PET_DECAY : 0)));
+}
+const petName = () => (S.pet && S.pet.name) || "Capy";
+function petMood(h){
+  return h >= 80 ? ["so happy 🥰", "#7cc68d"] : h >= 50 ? ["chillin 😌", "#a8d17a"] : h >= 25 ? ["a bit lonely 🥺", "#f2c46b"] : ["misses you both 😢", "#f0907e"];
+}
+function renderPetBtn(){
+  if(!me) return;
+  const h = petNow(), [, col] = petMood(h);
+  if(!$("#petIcon").innerHTML) $("#petIcon").innerHTML = $(".buddy.capy.solo svg")?.outerHTML || "🦫";
+  $("#petMini").style.width = h + "%"; $("#petMini").style.background = col;
+  $("#petBadge").hidden = h >= 25;
+}
+function renderPet(){
+  const h = petNow(), [mood, col] = petMood(h), p = S.pet || {}, last = p.last;
+  const capy = $(".buddy.capy.solo svg")?.outerHTML || "";
+  $("#sheetContent").innerHTML = `<div class="pet">
+    <p class="pet-name">${esc(petName())}</p><button class="pet-rename" data-pet="rename">rename</button>
+    <div class="pet-stage"><div class="pc" id="petCapy">${capy}</div></div>
+    <div class="pet-mood">${mood}</div>
+    <div class="hbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(h)}" aria-label="Happiness"><i style="width:${h}%;background:${col}"></i></div>
+    <div class="pet-last">${last && last.at ? `last ${PET_ACTS[last.type]?.past || "visited"} by ${esc(last.by===me.uid ? "you" : last.byName)} · ${esc(ago(tms(last.at)))}` : "Nobody's visited yet. Say hi!"}</div>
+    <div class="pet-acts">${Object.entries(PET_ACTS).map(([k,a])=>`<button data-pet="${k}"><span>${a.e}</span>${a.l}</button>`).join("")}</div>
+    <div class="sheet-actions"><button class="btn" data-close>Close</button></div>
+  </div>`;
+}
+function flyTo(emoji, from, to){
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+  const el = document.createElement("span"); el.className = "fly"; el.textContent = emoji;
+  el.style.left = (a.left + a.width/2 - 12) + "px"; el.style.top = (a.top) + "px";
+  el.style.animation = "none"; el.style.transition = "transform .6s cubic-bezier(.3,.7,.4,1), opacity .3s .5s";
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{ el.style.transform = `translate(${b.left + b.width/2 - a.left - a.width/2}px, ${b.top + b.height/2 - a.top}px) scale(1.4)`; el.style.opacity = "0"; });
+  setTimeout(()=>el.remove(), 900);
+}
+let petBusy = false;
+async function petAct(type, btn){
+  if(petBusy) return; petBusy = true; setTimeout(()=>petBusy=false, 700);
+  const a = PET_ACTS[type], capyEl = $("#petCapy");
+  if(btn && capyEl) flyTo(a.e, btn, capyEl);
+  setTimeout(()=>{ const c = $("#petCapy"); if(c){ c.classList.remove("boing"); void c.getBoundingClientRect(); c.classList.add("boing"); burst(c); } }, 450);
+  const next = Math.min(100, petNow() + a.gain);
+  try{
+    await setDoc(doc(db,"meta","pet"), { points:next, updatedAt:serverTimestamp(), last:{ type, by:me.uid, byName:me.name, at:serverTimestamp() } }, {merge:true});
+  }catch(err){ console.error(err); toast("Couldn't reach the capy. Check your internet."); }
+}
+function openPet(){ panel = "pet"; openSheet(""); renderPet(); }
+$("#petBtn").addEventListener("click", openPet);
+setInterval(()=>{ if(me){ renderPetBtn(); if(panel==="pet" && $("#sheet").classList.contains("on")) renderPet(); } }, 60000);
+
+$("#sheetContent").addEventListener("click", async e=>{
+  if(panel==="jar"){
+    if(e.target.closest("#jarSvg")) return pullNote();
+    if(e.target.closest('[data-jar="add"]')){ panel = null; return openForm("jarnote"); }
+    const d = e.target.closest("[data-jardel]");
+    if(d && confirm("Take this note out of the jar?")){ try{ await deleteDoc(doc(db,"jar",d.dataset.jardel)); }catch(err){ alert("Couldn't remove. Check your internet."); } }
+  }else if(panel==="pet"){
+    const b = e.target.closest("[data-pet]"); if(!b) return;
+    if(b.dataset.pet==="rename"){
+      const n = prompt("Name your capy:", petName()); if(n === null) return;
+      const name = n.trim().slice(0,20); if(!name) return;
+      try{ await setDoc(doc(db,"meta","pet"), { name }, {merge:true}); }catch(err){ toast("Couldn't rename. Check your internet."); }
+    }else petAct(b.dataset.pet, b);
+  }
+});
+$("#sheetContent").addEventListener("keydown", e=>{ if(panel==="jar" && e.target.closest("#jarSvg") && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); pullNote(); } });
 
 /* ============ daily check-ins ============ */
 const pad = n => String(n).padStart(2,"0");
@@ -1460,7 +1642,7 @@ function openSheet(html){
   const f = $("#sheetContent").querySelector("input,textarea,button"); if(f) f.focus();
 }
 function closeSheet(){
-  stopRec();
+  stopRec(); panel = null;
   $("#veil").classList.remove("on"); $("#sheet").classList.remove("on");
   if(lastFocus) lastFocus.focus();
 }
@@ -1586,6 +1768,10 @@ const FORMS = {
   note:{ title:"Leave a note", html:`
     <label>It shows on the home page for both of you</label><textarea name="note" maxlength="400" required></textarea>`,
     async save(f){ return [{home:{ note:f.elements.note.value.trim(), noteBy:me.uid, noteByName:me.name, noteAt:serverTimestamp(), reactions:deleteField() }}]; } },
+  jarnote:{ title:"A note for the jar", html:()=>`
+    <label>Write something sweet <small>(they'll pull it out at random)</small></label>
+    <textarea name="text" maxlength="300" placeholder="I love the way you…" required></textarea>`,
+    async save(f){ return [{coll:"jar", data:{ text:f.elements.text.value.trim() }}]; } },
   complaint:{ title:"File a complaint", html:()=>`
     <label>What happened?</label><textarea name="text" maxlength="400" placeholder="didn't reply for 3 hours 😤" required></textarea>
     <label>How upset are you?</label>
