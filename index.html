@@ -429,6 +429,33 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 .buddy.capy.solo .hat{position:absolute;left:68px;top:12px;font-size:18px;transform:translate(-50%,-80%) rotate(8deg);pointer-events:none;z-index:1}
 .buddy.capy.solo.left .hat{left:18px;transform:translate(-50%,-80%) rotate(-8deg)}
 
+/* ============ capy pet v3 ============ */
+.coin-chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:900;font-size:13px}
+.pet-stage .pc{cursor:pointer}
+.ptabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--bg);border:1.5px solid var(--line);border-radius:999px;padding:4px;margin:14px auto 0;max-width:380px}
+.ptabs button{border:0;background:none;padding:8px 2px;border-radius:999px;font-weight:800;font-size:13px;color:var(--soft);cursor:pointer}
+.ptabs button[aria-selected="true"]{background:var(--blush);color:#3b2a4a}
+.gift-btn{display:block;width:100%;max-width:380px;margin:12px auto 0;border:2px dashed #e0b44a;border-radius:16px;padding:12px;font-weight:800;font-size:16px;background:repeating-linear-gradient(135deg,#fff3c9 0 10px,#ffe9a8 10px 20px);color:#5a4210;cursor:pointer}
+.gift-btn:disabled{opacity:.55;cursor:default}
+.shop{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-width:380px;margin:12px auto 0}
+.shop .it{border:1.5px solid var(--line);border-radius:16px;padding:10px;text-align:left;background:var(--card)}
+.shop .it .em{font-size:30px;line-height:1}
+.shop .it b{display:block;font-size:15px;margin-top:2px}
+.shop .it small{display:block;color:var(--soft);font-size:12px;min-height:30px}
+.shop .it button{margin-top:6px;width:100%;border:0;border-radius:999px;padding:7px;font-weight:900;background:var(--ink);color:var(--bg);cursor:pointer}
+.shop .it button:disabled{opacity:.4;cursor:default}
+.shop h5{grid-column:1/-1;margin:8px 0 0;font-size:13px;color:var(--soft)}
+.play-card{max-width:380px;margin:12px auto 0;border:1.5px solid var(--line);border-radius:18px;padding:16px;background:var(--card)}
+.play-card p{margin:4px 0 10px;color:var(--soft);font-size:14px}
+.catcher{position:absolute;bottom:3%;left:50%;width:84px;transform:translateX(-50%);pointer-events:none}
+.catcher .cin{position:relative;transition:transform .12s}
+.catcher.flip .cin{transform:scaleX(-1)}
+.catcher svg{width:100%;height:auto;display:block}
+.catcher .hat{position:absolute;left:66px;top:10px;font-size:19px;transform:translate(-50%,-80%) rotate(8deg)}
+.catcher.hurt .cin{animation:jshake .4s}
+.game .fruit{pointer-events:none}
+.game-hud #gCombo{color:#e0703a}
+
 /* ============ wandering buddy ============ */
 .buddy{position:fixed;left:0;top:0;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .buddy.doll{width:54px;height:74px}
@@ -727,7 +754,7 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, updateDoc, deleteField, onSnapshot, serverTimestamp, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, deleteDoc, setDoc, updateDoc, deleteField, onSnapshot, serverTimestamp, query, where, Timestamp, increment, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /* ============ settings ============ */
 const firebaseConfig = {
@@ -846,6 +873,7 @@ function startListening(){
   }, err=>console.error("jar", err)));
   unsubs.push(onSnapshot(doc(db,"meta","pet"), snap=>{
     S.pet = snap.exists() ? snap.data() : {};
+    if(snap.exists()) maybeFixPet();
     renderPetBtn(); if(panel==="pet") renderPet(); renderNotifs();
   }, err=>console.error("pet", err)));
   unsubs.push(onSnapshot(doc(db,"meta","home"), snap=>{
@@ -921,9 +949,9 @@ function toast(msg){
   const t = $("#toast"); t.textContent = msg; t.classList.add("on");
   clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("on"), 2600);
 }
-function burst(el){
+function burst(el, count=7){
   const r = el.getBoundingClientRect();
-  for(let i=0;i<7;i++){
+  for(let i=0;i<count;i++){
     const h = document.createElement("span"); h.className = "fly";
     h.textContent = ["💛","💗","💕","🤍"][i%4];
     h.style.left = (r.left + r.width/2 - 12 + (Math.random()*40-20)) + "px";
@@ -937,20 +965,27 @@ function renderThoughts(){
   if(!me) return;
   const mid = new Date(); mid.setHours(0,0,0,0);
   const today = S.thoughts.filter(t => ms(t) >= mid.getTime());
-  const theirs = today.filter(t => t.by !== me.uid).length, mine = today.length - theirs;
+  const sumN = a => a.reduce((x,t)=>x + (t.n||1), 0);
+  const theirs = sumN(today.filter(t => t.by !== me.uid)), mine = sumN(today.filter(t => t.by === me.uid)) + pendingHearts;
   const o = esc(nameOther());
   $("#thinkLine").innerHTML = (theirs
     ? `<b>${o} thought of you ${theirs} ${theirs===1?"time":"times"} today 💛</b>`
     : `No hearts from ${o} yet today`) + (mine ? ` · you sent ${mine}` : "");
 }
-let thinkBusy = false;
-$("#thinkBtn").addEventListener("click", async e=>{
-  burst(e.currentTarget);
-  if(navigator.vibrate) navigator.vibrate(12);
-  if(thinkBusy) return; thinkBusy = true; setTimeout(()=>thinkBusy=false, 600);
-  try{ await addDoc(collection(db,"thoughts"), { by:me.uid, byName:me.name, createdAt:serverTimestamp() }); }
-  catch(err){ console.error(err); toast("Couldn't send. Check your internet."); }
+let pendingHearts = 0, heartT = null;
+async function flushHearts(){
+  const n = pendingHearts; if(!n) return; pendingHearts = 0;
+  try{ await addDoc(collection(db,"thoughts"), { by:me.uid, byName:me.name, n, createdAt:serverTimestamp() }); }
+  catch(err){ console.error(err); pendingHearts += n; toast("Couldn't send. Check your internet."); }
+  renderThoughts();
+}
+$("#thinkBtn").addEventListener("click", e=>{
+  burst(e.currentTarget, 4);
+  if(navigator.vibrate) navigator.vibrate(8);
+  pendingHearts++; renderThoughts();
+  clearTimeout(heartT); heartT = setTimeout(flushHearts, 900);
 });
+addEventListener("pagehide", flushHearts);
 
 /* ============ question of the day ============ */
 const QUESTIONS = [
@@ -1384,14 +1419,14 @@ function buildFeed(){
   }
   for(const l of S.locations) add(l.by, tms(l.updatedAt), "📍", `<b>${esc(nm(l.by,l.byName))}</b> updated ${l.by===me.uid?"your":"their"} location${l.city?` (${esc(cut(l.city,30))})`:""}`, {tab:"where"});
   for(const n of S.jar) add(n.by, ms(n), "🫙", `<b>${esc(nm(n.by,n.byName))}</b> put a note in the love jar`, {jar:true});
-  const pl = S.pet?.last; if(pl && pl.by) add(pl.by, tms(pl.at), PET_ACTS[pl.type]?.e || "🦫", `<b>${esc(nm(pl.by,pl.byName))}</b> ${PET_ACTS[pl.type]?.past || "visited"} ${esc(petName())}${pl.type==="game" && S.pet?.best?.at && tms(S.pet.best.at)===tms(pl.at) ? " (new best! 🏆)" : ""}`, {pet:true});
+  const pl = S.pet?.last; if(pl && pl.by) add(pl.by, tms(pl.at), PET_ACTS[pl.type]?.e || "🦫", `<b>${esc(nm(pl.by,pl.byName))}</b> ${PET_ACTS[pl.type]?.past || "visited"} ${esc(petName())}${pl.type==="game" && pl.score ? ` and scored ${pl.score}` : ""}${pl.type==="buy" && pl.item ? ` (${SHOP.find(x=>x.k===pl.item)?.e || ""})` : ""}`, {pet:true});
   const h = S.home || {};
   if(h.note && h.noteBy) add(h.noteBy, tms(h.noteAt), "✏️", `<b>${esc(nm(h.noteBy,h.noteByName))}</b> left a new note`, {tab:"home"});
   for(const [uid, e] of Object.entries(h.reactions||{})) if(e) add(uid, tms(h.reactAt?.[uid]), "😊", `<b>${esc(nm(uid, h.reactNames?.[uid]))}</b> reacted ${esc(e)} to the note`, {tab:"home"});
   if(h.reunion && h.reunionBy) add(h.reunionBy, tms(h.reunionAt), "📅", `<b>${esc(nm(h.reunionBy,h.reunionByName))}</b> set the day you see each other again`, {tab:"home"});
   // hearts: one line per person per day
   const hearts = {};
-  for(const t of S.thoughts){ const d = new Date(ms(t)), k = `${t.by}|${dayKey(d)}`; (hearts[k] ??= {by:t.by, n:0, last:0}); hearts[k].n++; hearts[k].last = Math.max(hearts[k].last, ms(t)); }
+  for(const t of S.thoughts){ const d = new Date(ms(t)), k = `${t.by}|${dayKey(d)}`; (hearts[k] ??= {by:t.by, n:0, last:0}); hearts[k].n += (t.n||1); hearts[k].last = Math.max(hearts[k].last, ms(t)); }
   for(const g of Object.values(hearts)) add(g.by, g.last, "💛", g.by===me.uid ? `<b>You</b> sent ${g.n} ${g.n===1?"heart":"hearts"}` : `<b>${esc(nameOther())}</b> thought of you ${g.n} ${g.n===1?"time":"times"}`, {tab:"home"});
   return ev.sort((a,b)=>b.t-a.t).slice(0,50);
 }
@@ -1504,7 +1539,9 @@ const PET_ACTS = {
   bath: { e:"🛁", l:"Bath", past:"bathed",      gain:{clean:40},           fx:"🫧" },
   nap:  { e:"💤", l:"Nap",  past:"tucked in",   gain:{energy:38},          fx:"💤" },
   pet:  { e:"🤗", l:"Pet",  past:"pet",         gain:{fun:8, hunger:3, clean:3, energy:3}, fx:"💗" },
-  game: { e:"🎮", l:"Game", past:"played catch with" }
+  game: { e:"🎮", l:"Game", past:"played Capy Catch with" },
+  gift: { e:"🎁", l:"Gift", past:"opened a gift with" },
+  buy:  { e:"🛍️", l:"Shop", past:"went shopping for" }
 };
 const HATS = [
   { k:"",       e:"🚫", l:"none",   lv:1 },
@@ -1513,34 +1550,55 @@ const HATS = [
   { k:"orange", e:"🍊", l:"orange", lv:3 },
   { k:"duck",   e:"🦆", l:"duck",   lv:4 },
   { k:"grad",   e:"🎓", l:"grad",   lv:5 },
-  { k:"crown",  e:"👑", l:"crown",  lv:7 }
+  { k:"crown",  e:"👑", l:"crown",  lv:7 },
+  { k:"star",   e:"🌟", l:"star",   lv:10 },
+  { k:"sprout", e:"🌱", l:"sprout", lv:15 },
+  { k:"bunny",  e:"🐰", l:"bunny",  lv:20 }
+];
+const SHOP = [
+  { k:"melon",  e:"🍉", l:"Watermelon", cost:8,   kind:"food", gain:{hunger:40, fun:5},                         xp:15, d:"+40 hunger" },
+  { k:"dango",  e:"🍡", l:"Dango",      cost:12,  kind:"food", gain:{hunger:20, energy:20},                     xp:20, d:"+20 hunger, +20 energy" },
+  { k:"cake",   e:"🍰", l:"Cake",       cost:20,  kind:"food", gain:{hunger:20, fun:20, clean:20, energy:20},   xp:30, d:"+20 to everything" },
+  { k:"yoyo",   e:"🪀", l:"Yo-yo",      cost:10,  kind:"toy",  gain:{fun:25},                                   xp:12, d:"+25 fun" },
+  { k:"teddy",  e:"🧸", l:"Teddy",      cost:15,  kind:"toy",  gain:{fun:40},                                   xp:20, d:"+40 fun" },
+  { k:"shades", e:"🕶️", l:"Shades",     cost:40,  kind:"wear", d:"too cool" },
+  { k:"cap",    e:"🧢", l:"Cap",        cost:35,  kind:"wear", d:"sporty capy" },
+  { k:"shroom", e:"🍄", l:"Mushroom",   cost:50,  kind:"wear", d:"forest capy" },
+  { k:"tophat", e:"🎩", l:"Top hat",    cost:60,  kind:"wear", d:"very fancy" },
+  { k:"rainbow",e:"🌈", l:"Rainbow",    cost:100, kind:"wear", d:"legendary" }
 ];
 const XP_PER_ACT = 10, XP_PER_LV = 100;
 const clamp = n => Math.max(0, Math.min(100, n));
-function petStats(){
-  const p = S.pet || {}, t = tms(p.updatedAt), hrs = t ? (Date.now()-t)/36e5 : 0;
-  const legacy = typeof p.points === "number" ? p.points : 70;
-  const out = {};
+function statsFrom(p){
+  p = p || {};
+  const t = tms(p.updatedAt), hrs = t ? (Date.now()-t)/36e5 : 0;
+  const legacy = typeof p.points === "number" ? p.points : 70, out = {};
   for(const [k, st] of Object.entries(STATS)){
     const base = p.stats && typeof p.stats[k] === "number" ? p.stats[k] : legacy;
     out[k] = clamp(base - hrs*st.decay);
   }
   return out;
 }
-const petNow = () => { const st = petStats(); return (st.hunger + st.fun + st.clean + st.energy) / 4; };
+const petStats = () => statsFrom(S.pet);
+const avg4 = st => (st.hunger + st.fun + st.clean + st.energy) / 4;
+const petNow = () => avg4(petStats());
 const petName = () => (S.pet && S.pet.name) || "Capy";
 const petXP = () => (S.pet && S.pet.xp) || 0;
+const petCoins = () => Math.max(0, (S.pet && S.pet.coins) || 0);
 const petLevel = () => Math.floor(petXP() / XP_PER_LV) + 1;
-const hatOf = () => HATS.find(h => h.k === ((S.pet && S.pet.hat) || "")) || HATS[0];
+const owned = () => (S.pet && S.pet.owned) || [];
+const allWear = () => [...HATS, ...SHOP.filter(x=>x.kind==="wear")];
+const hatOf = () => allWear().find(h => h.k === ((S.pet && S.pet.hat) || "")) || HATS[0];
 function petMood(h){
   return h >= 80 ? ["so happy 🥰", "#7cc68d"] : h >= 50 ? ["chillin 😌", "#a8d17a"] : h >= 25 ? ["a bit lonely 🥺", "#f2c46b"] : ["misses you both 😢", "#f0907e"];
 }
 function petLine(st){
   const low = Object.entries(st).sort((a,b)=>a[1]-b[1])[0];
   if(low[1] < 35) return { hunger:"i'm hungry… 🍊", fun:"play with me? 🦆", clean:"i need a bath 🛁", energy:"so sleepy… 💤" }[low[0]];
-  const happy = ["you're my favourite", `where's ${nameOther()}?`, "*happy capy noises*", "i love you both", "orange pls 🥺", "chillin~", "more pets pls"];
+  const happy = ["you're my favourite", `where's ${nameOther()}?`, "*happy capy noises*", "i love you both", "orange pls 🥺", "chillin~", "more pets pls", "bet you can't beat my high score", "i'm saving up for the 🌈", "tap me hehe"];
   return happy[Math.floor(Math.random()*happy.length)];
 }
+const BOOPS = ["boop!", "hehe that tickles", "*squeak*", "again!", "i'm a capy, not a button 😤", "💗", "*wiggles*", "nose boop!!"];
 function careCounts(){
   const c = (S.pet && S.pet.counts) || {}, sum = o => Object.values(o||{}).reduce((a,b)=>a+(b||0),0);
   let mine = 0, theirs = 0;
@@ -1562,26 +1620,44 @@ function renderPetBtn(){
   $("#petBadge").hidden = h >= 25;
   syncWanderHat();
 }
-let petSay = "";
+const capySVG = () => $(".buddy.capy.solo svg")?.outerHTML || "";
+let petSay = "", petTab = "care";
 function renderPet(){
   if(gameScreen) return;
   const st = petStats(), h = petNow(), [mood] = petMood(h), p = S.pet || {}, last = p.last;
-  const lv = petLevel(), into = petXP() % XP_PER_LV, hat = hatOf(), cc = careCounts(), o = esc(nameOther());
+  const lv = petLevel(), into = petXP() % XP_PER_LV, hat = hatOf(), cc = careCounts(), o = esc(nameOther()), coins = petCoins();
   if(!petSay) petSay = petLine(st);
-  const capy = $(".buddy.capy.solo svg")?.outerHTML || "";
-  const best = p.best;
-  $("#sheetContent").innerHTML = `<div class="pet">
-    <div class="pet-head"><p class="pet-name">${esc(petName())}</p><span class="lvl-chip">Lv ${lv}</span></div>
-    <button class="pet-rename" data-pet="rename">rename</button>
-    <div class="xpbar"><i style="width:${into}%"></i></div><div class="xp-txt">${into}/${XP_PER_LV} XP to Lv ${lv+1}</div>
-    <div class="pet-stage"><div class="pc" id="petCapy">${capy}</div>${hat.k?`<span class="hat">${hat.e}</span>`:""}<div class="pet-say" id="petSay">${esc(petSay)}</div><div class="pet-fx" id="petFx"></div></div>
-    <div class="pet-mood">${mood}</div>
+  const giftDone = p.gifts && p.gifts[me.uid] === todayKey();
+  let body = "";
+  if(petTab === "care") body = `
     <div class="stats">${Object.entries(STATS).map(([k,s2])=>`<div class="stat">${s2.e} ${s2.l}<div class="sb"><i style="width:${st[k]}%;background:${s2.col}"></i></div></div>`).join("")}</div>
     <div class="pet-acts">${["feed","play","bath","nap","pet"].map(k=>`<button data-pet="${k}"><span>${PET_ACTS[k].e}</span>${PET_ACTS[k].l}</button>`).join("")}</div>
+    <button class="gift-btn" data-pet="gift" ${giftDone?"disabled":""}>${giftDone ? "🎁 Opened today, come back tomorrow" : "🎁 Open today's gift"}</button>
     <div class="pet-last">${last && last.at ? `last ${PET_ACTS[last.type]?.past || "visited"} by ${esc(last.by===me.uid ? "you" : last.byName)} · ${esc(ago(tms(last.at)))}` : "Nobody's visited yet. Say hi!"}</div>
-    <div class="pet-sec"><button class="game-btn" data-pet="game">🍊 Catch the oranges${best ? ` · best: ${esc(best.by===me.uid?"you":best.byName)} ${best.score}` : ""}</button></div>
-    <div class="pet-sec"><h4>Wardrobe</h4><div class="hats">${HATS.map(x=>`<button data-hat="${x.k}" class="${x.k===hat.k?"on":""}" ${lv < x.lv ? "disabled" : ""} aria-label="${x.l}">${lv < x.lv ? "🔒" : x.e}<small>${lv < x.lv ? `Lv ${x.lv}` : x.l}</small></button>`).join("")}</div></div>
-    <div class="care">Cared for ${esc(petName())}: you ${cc.mine} · ${o} ${cc.theirs}</div>
+    <div class="care">Cared for ${esc(petName())}: you ${cc.mine} · ${o} ${cc.theirs}</div>`;
+  else if(petTab === "play") body = `
+    <div class="play-card"><b style="font-size:18px">🎮 Capy Catch</b>
+      <p>Drag ${esc(petName())} left and right. Catch 🍊 🍉 ⭐, dodge 🌶️, grab 🦆 for an extra life. Combos multiply your points. Earns 🪙 and XP.</p>
+      ${p.best ? `<p style="color:var(--ink)">🏆 Best: <b>${esc(p.best.by===me.uid?"you":p.best.byName)}</b> · ${p.best.score}</p>` : ""}
+      <button class="btn primary" data-pet="game" style="width:100%">Play</button></div>`;
+  else if(petTab === "shop") body = `
+    <div class="shop">
+      <h5>Snacks & toys (used straight away)</h5>
+      ${SHOP.filter(x=>x.kind!=="wear").map(x=>`<div class="it"><div class="em">${x.e}</div><b>${x.l}</b><small>${x.d} · +${x.xp} XP</small><button data-buy="${x.k}" ${coins<x.cost?"disabled":""}>${x.cost} 🪙</button></div>`).join("")}
+      <h5>Outfits (yours forever)</h5>
+      ${SHOP.filter(x=>x.kind==="wear").map(x=>{ const has = owned().includes(x.k); return `<div class="it"><div class="em">${x.e}</div><b>${x.l}</b><small>${x.d}</small><button data-buy="${x.k}" ${has||coins<x.cost?"disabled":""}>${has?"owned ✓":x.cost+" 🪙"}</button></div>`; }).join("")}
+    </div>`;
+  else body = `
+    <div class="pet-sec"><h4>Unlocked by level</h4><div class="hats">${HATS.map(x=>`<button data-hat="${x.k}" class="${x.k===hat.k?"on":""}" ${lv < x.lv ? "disabled" : ""} aria-label="${x.l}">${lv < x.lv ? "🔒" : x.e}<small>${lv < x.lv ? `Lv ${x.lv}` : x.l}</small></button>`).join("")}</div></div>
+    <div class="pet-sec"><h4>From the shop</h4><div class="hats">${SHOP.filter(x=>x.kind==="wear").map(x=>{ const has = owned().includes(x.k); return `<button data-hat="${x.k}" class="${x.k===hat.k?"on":""}" ${has?"":"disabled"} aria-label="${x.l}">${has ? x.e : "🔒"}<small>${has ? x.l : x.cost+"🪙"}</small></button>`; }).join("")}</div></div>`;
+  $("#sheetContent").innerHTML = `<div class="pet">
+    <div class="pet-head"><p class="pet-name">${esc(petName())}</p><span class="lvl-chip">Lv ${lv}</span><span class="coin-chip">🪙 ${coins}</span></div>
+    <button class="pet-rename" data-pet="rename">rename</button>
+    <div class="xpbar"><i style="width:${into}%"></i></div><div class="xp-txt">${into}/${XP_PER_LV} XP to Lv ${lv+1}</div>
+    <div class="pet-stage"><div class="pc" id="petCapy" role="button" aria-label="Boop ${esc(petName())}">${capySVG()}</div>${hat.k?`<span class="hat">${hat.e}</span>`:""}<div class="pet-say" id="petSay">${esc(petSay)}</div><div class="pet-fx" id="petFx"></div></div>
+    <div class="pet-mood">${mood}</div>
+    <div class="ptabs" role="tablist">${[["care","Care"],["play","Play"],["shop","Shop"],["closet","Closet"]].map(([k,l])=>`<button role="tab" data-ptab="${k}" aria-selected="${petTab===k}">${l}</button>`).join("")}</div>
+    ${body}
     <div class="sheet-actions"><button class="btn" data-close>Close</button></div>
   </div>`;
 }
@@ -1589,6 +1665,7 @@ function petFX(emoji, n=5){
   const box = $("#petFx"); if(!box) return;
   for(let i=0;i<n;i++){ const s2 = document.createElement("span"); s2.textContent = emoji; s2.style.left = (90 + Math.random()*110) + "px"; s2.style.top = (60 + Math.random()*60) + "px"; s2.style.animationDelay = (i*120)+"ms"; box.appendChild(s2); setTimeout(()=>s2.remove(), 1800); }
 }
+function bounceCapy(){ const c = $("#petCapy"); if(c){ c.classList.remove("boing"); void c.getBoundingClientRect(); c.classList.add("boing"); } }
 function flyTo(emoji, from, to){
   const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
   const el = document.createElement("span"); el.className = "fly"; el.textContent = emoji;
@@ -1602,72 +1679,173 @@ function confetti(){
   const c = ["🎉","✨","🎊","⭐","💛"];
   for(let i=0;i<24;i++){ const f = document.createElement("span"); f.className = "fly"; f.textContent = c[i%c.length]; f.style.left = (Math.random()*innerWidth) + "px"; f.style.top = (innerHeight*0.55 + Math.random()*80) + "px"; f.style.setProperty("--dx", (Math.random()*160-80)+"px"); f.style.animationDelay = (Math.random()*300)+"ms"; document.body.appendChild(f); setTimeout(()=>f.remove(), 1800); }
 }
-async function petSave(type, gain, xpGain, extra={}){
-  const st = petStats(), lvBefore = petLevel();
+function checkLevelUp(before, xpGain){
+  const after = Math.floor((petXP() + xpGain) / XP_PER_LV) + 1;
+  if(after > before){ confetti(); toast(`${petName()} reached Lv ${after}! 🎉`); }
+}
+async function petSave(type, gain, xpGain, coinGain, extra={}){
+  const st = petStats(), before = petLevel();
   for(const [k, v] of Object.entries(gain||{})) st[k] = clamp(st[k] + v);
-  const xp = petXP() + xpGain;
-  const mineCounts = { ...(((S.pet||{}).counts||{})[me.uid] || {}) }; mineCounts[type] = (mineCounts[type]||0) + 1;
   try{
-    await setDoc(doc(db,"meta","pet"), { stats:st, points:(st.hunger+st.fun+st.clean+st.energy)/4, updatedAt:serverTimestamp(), xp,
-      last:{ type, by:me.uid, byName:me.name, at:serverTimestamp() }, counts:{ [me.uid]: mineCounts }, ...extra }, {merge:true});
-    if(Math.floor(xp / XP_PER_LV) + 1 > lvBefore){ confetti(); toast(`${petName()} reached Lv ${Math.floor(xp/XP_PER_LV)+1}! 🎉`); }
-  }catch(err){ console.error(err); toast("Couldn't reach the capy. Check your internet."); }
+    await setDoc(doc(db,"meta","pet"), { stats:st, points:avg4(st), updatedAt:serverTimestamp(),
+      xp: increment(xpGain), coins: increment(coinGain),
+      last:{ type, by:me.uid, byName:me.name, at:serverTimestamp(), ...(extra._last||{}) },
+      counts:{ [me.uid]: { [type]: increment(1) } }, ...(extra.set||{}) }, {merge:true});
+    checkLevelUp(before, xpGain);
+    return true;
+  }catch(err){ console.error(err); toast("Couldn't reach the capy. Check your internet."); return false; }
 }
 let petBusy = false;
 async function petAct(type, btn){
-  if(petBusy) return; petBusy = true; setTimeout(()=>petBusy=false, 700);
+  if(petBusy) return; petBusy = true; setTimeout(()=>petBusy=false, 600);
   const a = PET_ACTS[type], capyEl = $("#petCapy");
   if(btn && capyEl) flyTo(a.e, btn, capyEl);
-  setTimeout(()=>{ const c = $("#petCapy"); if(c){ c.classList.remove("boing"); void c.getBoundingClientRect(); c.classList.add("boing"); petFX(a.fx, type==="pet"?6:4); } }, 450);
+  setTimeout(()=>{ bounceCapy(); petFX(a.fx, type==="pet"?6:4); }, 450);
   petSay = { feed:"nom nom 🍊", play:"wheee!", bath:"so fresh 🫧", nap:"zzz… 💤", pet:"hehe 💗" }[type];
-  await petSave(type, a.gain, XP_PER_ACT);
+  await petSave(type, a.gain, XP_PER_ACT, 1);
 }
-function openPet(){ panel = "pet"; petSay = ""; openSheet(""); renderPet(); }
+async function openGift(){
+  const p = S.pet || {};
+  if(p.gifts && p.gifts[me.uid] === todayKey()) return;
+  const coins = 10 + Math.floor(Math.random()*21), xp = 15 + Math.floor(Math.random()*16);
+  const lucky = Math.random() < .15, bonus = lucky ? 30 : 0;
+  petSay = lucky ? "WOW a lucky gift!! 🤩" : "a present for me?? 🎁";
+  const ok = await petSave("gift", { fun:10 }, xp, coins + bonus, { set:{ gifts:{ [me.uid]: todayKey() } } });
+  if(ok){ confetti(); toast(`🎁 +${coins + bonus} 🪙 and +${xp} XP${lucky?" (lucky!)":""}`); }
+}
+async function buyItem(k){
+  const item = SHOP.find(x=>x.k===k); if(!item) return;
+  const before = petLevel();
+  try{
+    await runTransaction(db, async tx=>{
+      const ref = doc(db,"meta","pet"), snap = await tx.get(ref), d = snap.exists() ? snap.data() : {};
+      if((d.coins||0) < item.cost) throw new Error("poor");
+      const own = d.owned || [];
+      if(item.kind==="wear" && own.includes(item.k)) throw new Error("owned");
+      const data = { coins:(d.coins||0) - item.cost, last:{ type:"buy", item:item.k, by:me.uid, byName:me.name, at:serverTimestamp() }, counts:{ [me.uid]: { buy: increment(1) } } };
+      if(item.kind==="wear"){ data.owned = [...own, item.k]; data.hat = item.k; }
+      else { const st = statsFrom(d); for(const [g, v] of Object.entries(item.gain)) st[g] = clamp(st[g] + v); data.stats = st; data.points = avg4(st); data.updatedAt = serverTimestamp(); data.xp = (d.xp||0) + item.xp; }
+      tx.set(ref, data, {merge:true});
+    });
+    petSay = item.kind==="wear" ? "do i look cute? 😎" : item.kind==="toy" ? "best toy ever!!" : "yummy!! 😋";
+    if(item.kind!=="wear") checkLevelUp(before, item.xp);
+    toast(`${item.e} ${item.l} bought!`);
+    setTimeout(()=>{ bounceCapy(); petFX(item.e, 4); }, 50);
+  }catch(err){
+    toast(err.message==="poor" ? "Not enough 🪙. Play Capy Catch to earn more!" : err.message==="owned" ? "Already got that one!" : "Couldn't buy. Check your internet.");
+  }
+}
+function boop(){
+  petSay = BOOPS[Math.floor(Math.random()*BOOPS.length)];
+  const sEl = $("#petSay"); if(sEl) sEl.textContent = petSay;
+  bounceCapy(); petFX("💗", 2);
+  if(navigator.vibrate) navigator.vibrate(6);
+}
+function openPet(){ panel = "pet"; petSay = ""; petTab = "care"; openSheet(""); renderPet(); }
 $("#petBtn").addEventListener("click", openPet);
 setInterval(()=>{ if(me){ renderPetBtn(); if(panel==="pet" && !gameScreen && $("#sheet").classList.contains("on")) renderPet(); } }, 60000);
 
-/* ---- mini game: catch the oranges ---- */
+/* ---- one-time fix: restore the level lost to the old XP bug ---- */
+let petFixTried = false;
+function maybeFixPet(){
+  const p = S.pet || {};
+  if(petFixTried || !me || p.fixLv17) return;
+  petFixTried = true;
+  updateDoc(doc(db,"meta","pet"), { xp: Math.max(p.xp||0, 1600), coins: increment(50), fixLv17: true })
+    .then(()=>toast(`${petName()} is back to Lv ${Math.max(17, petLevel())} + 50 🪙 sorry gift 🎁`))
+    .catch(err=>{ console.error(err); petFixTried = false; });
+}
+
+/* ---- Capy Catch ---- */
 let gameOn = false, gameScreen = false, gameRAF = null;
 function startGame(){
-  gameOn = true; gameScreen = true;
-  const DURATION = 20;
-  $("#sheetContent").innerHTML = `<div class="pet"><h2>catch the oranges</h2>
-    <div class="game-hud"><span id="gScore">🍊 0</span><span id="gTime">⏱ ${DURATION}</span></div>
-    <div class="game" id="gArea"></div>
+  gameScreen = true; gameOn = false;
+  const hat = hatOf();
+  $("#sheetContent").innerHTML = `<div class="pet"><h2>capy catch</h2>
+    <div class="game-hud"><span id="gScore">🍊 0</span><span id="gCombo"></span><span id="gLives">❤️❤️❤️</span></div>
+    <div class="game" id="gArea">
+      <div class="catcher" id="gCapy"><div class="cin">${capySVG()}${hat.k?`<span class="hat">${hat.e}</span>`:""}</div></div>
+      <div class="game-over" id="gIntro"><div><b>capy catch</b>Drag to move ${esc(petName())}.<br>Catch 🍊 🍉 ⭐ · dodge 🌶️ · 🦆 = extra life<br><br><button class="btn primary" data-pet="go">Start</button></div></div>
+    </div>
     <div class="sheet-actions"><button class="btn" data-pet="quitgame">Back to ${esc(petName())}</button></div></div>`;
-  const area = $("#gArea"); let score = 0, t0 = performance.now(), lastSpawn = 0; const fruits = [];
-  const spawn = ()=>{
-    const big = Math.random() < .12, el = document.createElement("span");
-    el.className = "fruit"; el.textContent = big ? "🍉" : "🍊"; el.dataset.v = big ? 3 : 1;
-    const f = { el, x: 8 + Math.random()*84, y: -6, v: 18 + Math.random()*16 + (performance.now()-t0)/1000*1.2 };
-    el.style.left = f.x + "%"; area.appendChild(el); fruits.push(f);
+}
+function runGame(){
+  $("#gIntro")?.remove();
+  const area = $("#gArea"), capy = $("#gCapy");
+  let score = 0, combo = 0, lives = 3, cx = 50, target = 50, t0 = performance.now(), lastSpawn = 0, prev = t0;
+  const items = [];
+  const TYPES = [
+    { e:"🍊", v:1,  w:.58, good:true },
+    { e:"🍉", v:3,  w:.12, good:true },
+    { e:"⭐", v:5,  w:.035, good:true },
+    { e:"🌶️", v:0, w:.22, bad:true },
+    { e:"🦆", v:0,  w:.025, life:true }
+  ];
+  const hud = ()=>{
+    $("#gScore").textContent = `🍊 ${score}`;
+    const mult = Math.min(4, 1 + Math.floor(combo/8));
+    $("#gCombo").textContent = combo >= 3 ? `combo ${combo}${mult>1?` · x${mult}`:""}` : "";
+    $("#gLives").textContent = "❤️".repeat(lives) + "🤍".repeat(Math.max(0, 3-lives));
   };
-  area.addEventListener("pointerdown", e=>{
-    const el = e.target.closest(".fruit"); if(!el || !gameOn) return;
-    const v = +el.dataset.v; score += v; $("#gScore").textContent = `🍊 ${score}`;
-    const pop = document.createElement("span"); pop.className = "pop"; pop.textContent = `+${v}`;
-    pop.style.left = el.style.left; pop.style.top = el.style.top; area.appendChild(pop); setTimeout(()=>pop.remove(), 800);
-    el.remove(); const i = fruits.findIndex(f=>f.el===el); if(i>=0) fruits.splice(i,1);
-    if(navigator.vibrate) navigator.vibrate(8);
-  });
-  let prev = performance.now();
+  const pop = (txt, x, y)=>{ const p = document.createElement("span"); p.className = "pop"; p.textContent = txt; p.style.left = x + "%"; p.style.top = y + "%"; area.appendChild(p); setTimeout(()=>p.remove(), 800); };
+  const setTarget = clientX => { const r = area.getBoundingClientRect(); target = Math.max(6, Math.min(94, (clientX - r.left) / r.width * 100)); };
+  area.onpointerdown = e => setTarget(e.clientX);
+  area.onpointermove = e => { if(e.buttons || e.pointerType !== "mouse") setTarget(e.clientX); else setTarget(e.clientX); };
+  const keys = e => { if(!gameOn) return; if(e.key==="ArrowLeft") target = Math.max(6, target-12); if(e.key==="ArrowRight") target = Math.min(94, target+12); };
+  document.addEventListener("keydown", keys);
+  gameOn = true; hud();
   const tick = now=>{
-    if(!gameOn) return;
-    const dt = (now - prev)/1000; prev = now;
-    const left = Math.max(0, DURATION - (now - t0)/1000);
-    $("#gTime").textContent = `⏱ ${Math.ceil(left)}`;
-    if(now - lastSpawn > Math.max(280, 750 - (now-t0)/40)){ spawn(); lastSpawn = now; }
-    for(let i=fruits.length-1;i>=0;i--){ const f = fruits[i]; f.y += f.v*dt; f.el.style.top = f.y + "%"; if(f.y > 108){ f.el.remove(); fruits.splice(i,1); } }
-    if(left <= 0) return endGame(score);
+    if(!gameOn){ document.removeEventListener("keydown", keys); return; }
+    const dt = Math.min(.05, (now - prev)/1000); prev = now;
+    const secs = (now - t0)/1000;
+    // move capy
+    const dx = target - cx; cx += dx * Math.min(1, dt*14);
+    capy.style.left = cx + "%"; if(Math.abs(dx) > .5) capy.classList.toggle("flip", dx < 0);
+    // spawn
+    if(now - lastSpawn > Math.max(300, 900 - secs*14)){
+      lastSpawn = now;
+      const pool = TYPES.filter(t => !t.life || lives < 3), tot = pool.reduce((a,t)=>a+t.w + (t.bad ? Math.min(.15, secs/300) : 0), 0);
+      let r = Math.random()*tot, type = pool[0];
+      for(const t of pool){ r -= t.w + (t.bad ? Math.min(.15, secs/300) : 0); if(r <= 0){ type = t; break; } }
+      const el = document.createElement("span"); el.className = "fruit"; el.textContent = type.e;
+      const it = { el, type, x: 8 + Math.random()*84, y: -5, v: 24 + secs*1.1 + Math.random()*8 };
+      el.style.left = it.x + "%"; el.style.top = it.y + "%"; area.appendChild(el); items.push(it);
+    }
+    // move + collide
+    for(let i=items.length-1;i>=0;i--){
+      const it = items[i]; it.y += it.v*dt; it.el.style.top = it.y + "%";
+      if(it.y >= 80 && it.y <= 93 && Math.abs(it.x - cx) < 10){
+        it.el.remove(); items.splice(i,1);
+        if(it.type.good){ const mult = Math.min(4, 1 + Math.floor(combo/8)); const pts = it.type.v * mult; score += pts; combo++; pop(`+${pts}`, it.x, 76); }
+        else if(it.type.bad){ lives--; combo = 0; capy.classList.remove("hurt"); void capy.offsetWidth; capy.classList.add("hurt"); pop("ouch!", it.x, 76); if(navigator.vibrate) navigator.vibrate(60); }
+        else if(it.type.life){ lives = Math.min(3, lives+1); pop("+❤️", it.x, 76); }
+        hud();
+        if(lives <= 0) return endGame(score);
+      }else if(it.y > 106){
+        if(it.type.good){ combo = 0; hud(); }
+        it.el.remove(); items.splice(i,1);
+      }
+    }
     gameRAF = requestAnimationFrame(tick);
   };
   gameRAF = requestAnimationFrame(tick);
 }
 async function endGame(score){
   gameOn = false; cancelAnimationFrame(gameRAF);
-  const best = (S.pet||{}).best, isBest = !best || score > best.score;
-  $("#gArea").insertAdjacentHTML("beforeend", `<div class="game-over"><div><b>${score} caught!</b>${isBest && score ? "new best score 🏆" : best ? `best is ${esc(best.by===me.uid?"you":best.byName)} with ${best.score}` : ""}<br><br><button class="btn primary" data-pet="game">Play again</button></div></div>`);
-  if(score > 0) await petSave("game", { fun: Math.min(40, score*2), hunger: Math.min(20, score) }, score*2, isBest ? { best:{ score, by:me.uid, byName:me.name, at:serverTimestamp() } } : {});
+  const coins = Math.floor(score/2), oldBest = (S.pet||{}).best;
+  let newBest = false;
+  if(score > 0){
+    await petSave("game", { fun: Math.min(40, score), hunger: Math.min(20, Math.floor(score/2)) }, score, coins, { _last:{ score } });
+    try{
+      await runTransaction(db, async tx=>{
+        const ref = doc(db,"meta","pet"), snap = await tx.get(ref), d = snap.exists() ? snap.data() : {};
+        if(!d.best || score > d.best.score){ newBest = true; tx.set(ref, { best:{ score, by:me.uid, byName:me.name, at:serverTimestamp() } }, {merge:true}); }
+      });
+    }catch(err){ console.error(err); }
+  }
+  const best = newBest ? null : oldBest;
+  $("#gArea")?.insertAdjacentHTML("beforeend", `<div class="game-over"><div><b>${score} points!</b>${newBest ? "🏆 new best score!" : best ? `best is ${esc(best.by===me.uid?"you":best.byName)} with ${best.score}` : ""}<br>+${coins} 🪙 · +${score} XP<br><br><button class="btn primary" data-pet="game">Play again</button></div></div>`);
+  if(newBest) confetti();
 }
 function stopGame(){ gameScreen = false; if(gameOn){ gameOn = false; cancelAnimationFrame(gameRAF); } }
 
@@ -1678,16 +1856,24 @@ $("#sheetContent").addEventListener("click", async e=>{
     const d = e.target.closest("[data-jardel]");
     if(d && confirm("Take this note out of the jar?")){ try{ await deleteDoc(doc(db,"jar",d.dataset.jardel)); }catch(err){ alert("Couldn't remove. Check your internet."); } }
   }else if(panel==="pet"){
+    if(e.target.closest("#petCapy")) return boop();
+    const tb = e.target.closest("[data-ptab]"); if(tb){ petTab = tb.dataset.ptab; return renderPet(); }
+    const bb = e.target.closest("[data-buy]"); if(bb && !bb.disabled) return buyItem(bb.dataset.buy);
     const hb = e.target.closest("[data-hat]");
     if(hb && !hb.disabled){ try{ await setDoc(doc(db,"meta","pet"), { hat: hb.dataset.hat }, {merge:true}); }catch(err){ toast("Couldn't change the outfit. Check your internet."); } return; }
-    const b = e.target.closest("[data-pet]"); if(!b) return;
-    if(b.dataset.pet==="game") return startGame();
-    if(b.dataset.pet==="quitgame"){ stopGame(); return renderPet(); }
-    if(b.dataset.pet==="rename"){
+    const btn = e.target.closest("[data-pet]"); if(!btn) return;
+    const act = btn.dataset.pet;
+    if(act==="game") return startGame();
+    if(act==="go") return runGame();
+    if(act==="quitgame"){ stopGame(); return renderPet(); }
+    if(act==="gift") return openGift();
+    if(act==="rename"){
       const n = prompt("Name your capy:", petName()); if(n === null) return;
       const name = n.trim().slice(0,20); if(!name) return;
       try{ await setDoc(doc(db,"meta","pet"), { name }, {merge:true}); }catch(err){ toast("Couldn't rename. Check your internet."); }
-    }else petAct(b.dataset.pet, b);
+      return;
+    }
+    if(PET_ACTS[act]) petAct(act, btn);
   }
 });
 $("#sheetContent").addEventListener("keydown", e=>{ if(panel==="jar" && e.target.closest("#jarSvg") && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); pullNote(); } });
