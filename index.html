@@ -456,6 +456,61 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 .game .fruit{pointer-events:none}
 .game-hud #gCombo{color:#e0703a}
 
+/* ============ surprise letter ============ */
+#surprise{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px));background:radial-gradient(120% 90% at 50% 100%,#3a2f6e,#1b1938 70%);color:#f4eeff;overflow-y:auto;animation:fadein .6s ease}
+@keyframes fadein{from{opacity:0}}
+#surprise .stars{position:fixed}
+.sp-box{position:relative;text-align:center;max-width:420px;width:100%;margin:auto}
+.sp-teaser{font-family:var(--hand);font-size:40px;line-height:1.05;margin:0 0 22px}
+.sp-env{position:relative;width:220px;height:150px;margin:0 auto;cursor:pointer;border:0;background:none;padding:0;animation:envbob 2.2s ease-in-out infinite}
+@keyframes envbob{50%{transform:translateY(-8px) rotate(-1.5deg)}}
+.sp-env .body{position:absolute;inset:0;border-radius:12px;background:#ffd9cf;box-shadow:0 18px 40px -14px rgba(0,0,0,.6)}
+.sp-env .flap{position:absolute;left:0;right:0;top:0;height:0;border-left:110px solid transparent;border-right:110px solid transparent;border-top:86px solid #ffc4b6;transform-origin:top;transition:transform .6s ease}
+.sp-env .seal{position:absolute;left:50%;top:62px;transform:translate(-50%,-50%);font-size:34px}
+.sp-env.open{animation:none}
+.sp-env.open .flap{transform:rotateX(180deg)}
+.sp-hint{color:#cfc4ec;font-size:15px;margin-top:18px}
+.sp-letter{background:#fffbe8;color:#3b2a4a;border-radius:10px;padding:26px 24px 20px;text-align:left;box-shadow:0 24px 50px -18px rgba(0,0,0,.7);position:relative;animation:letterup .8s cubic-bezier(.2,.9,.3,1.15)}
+.sp-letter::before{content:"";position:absolute;inset:0;border-radius:10px;background:repeating-linear-gradient(transparent 0 33px,rgba(201,184,240,.35) 33px 34px);pointer-events:none}
+@keyframes letterup{0%{opacity:0;transform:translateY(80px) scale(.85)}100%{opacity:1;transform:none}}
+.sp-letter p{position:relative;font-family:var(--hand);font-size:26px;line-height:1.22;margin:0;white-space:pre-line}
+.sp-letter .sign{text-align:right;margin-top:14px;font-size:30px}
+.sp-close{margin-top:22px;border:0;border-radius:999px;padding:14px 30px;font-weight:800;font-size:17px;background:#f2c46b;color:#2a2150;cursor:pointer}
+.sp-heart{position:fixed;bottom:-30px;font-size:24px;pointer-events:none;animation:rise linear forwards;z-index:81}
+@keyframes rise{to{transform:translateY(-115vh) rotate(20deg);opacity:.2}}
+
+/* ============ zoo ============ */
+#zooBtn{left:120px}
+.zoo-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.zoo-sign{display:inline-block;background:#b98352;color:#fff7ea;border:3px solid #8a5d3f;border-radius:10px;padding:4px 14px;font-family:var(--hand);font-size:28px;box-shadow:0 6px 0 -2px #6d4630;transform:rotate(-2deg)}
+.zoo-scene{position:relative;height:min(56vh,440px);margin:14px -24px 0;overflow:hidden;background:linear-gradient(#bfe3f5 0 22%,#9fd18a 22% 100%);border-top:1.5px solid var(--line);border-bottom:1.5px solid var(--line);touch-action:manipulation}
+.zoo-scene::before{content:"";position:absolute;left:0;right:0;top:22%;height:14px;background:repeating-linear-gradient(90deg,#c89b6d 0 6px,transparent 6px 26px);border-top:3px solid #c89b6d;opacity:.9}
+.zoo-scene .pond{position:absolute;right:8%;bottom:10%;width:34%;height:17%;border-radius:50%;background:radial-gradient(#9fd6f0,#6fb8dd);box-shadow:inset 0 -6px 0 rgba(0,0,0,.08)}
+.zoo-scene .deco{position:absolute;font-size:30px;pointer-events:none}
+.zoo-scene .cloud{position:absolute;top:4%;font-size:30px;opacity:.9;animation:drift 40s linear infinite}
+@keyframes drift{from{transform:translateX(-60px)}to{transform:translateX(110vw)}}
+.za{position:absolute;left:0;top:0;cursor:pointer;text-align:center;will-change:transform;-webkit-user-select:none;user-select:none}
+.za .em{display:block;font-size:40px;line-height:1;transform-origin:50% 90%}
+.za.walk .em{animation:waddle .5s ease-in-out infinite}
+.za.right .face{transform:scaleX(-1)}
+.za .face{display:inline-block}
+.za .nm{display:block;font-family:var(--hand);font-size:17px;color:#2f3d22;line-height:1;margin-top:1px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.za .say{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);background:#fff;color:#3b2a4a;border-radius:12px;padding:3px 9px;font-family:var(--hand);font-size:20px;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 4px 10px -6px rgba(0,0,0,.4)}
+.za .say.on{opacity:1}
+.za.capy svg{width:74px;height:auto;display:block}
+.za.capy .face{position:relative}
+.za.capy .hat{position:absolute;left:58px;top:9px;font-size:17px;transform:translate(-50%,-80%) rotate(8deg)}
+.za.duck svg{width:40px;height:auto;display:block}
+.zoo-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.zoo-bar .btn{padding:10px 16px}
+.adopt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.adopt .it{border:1.5px solid var(--line);border-radius:16px;padding:10px 6px;text-align:center;background:var(--card)}
+.adopt .it .em{font-size:34px;line-height:1}
+.adopt .it b{display:block;font-size:13px;margin-top:2px}
+.adopt .it button{margin-top:6px;width:100%;border:0;border-radius:999px;padding:6px;font-weight:900;font-size:13px;background:var(--ink);color:var(--bg);cursor:pointer}
+.adopt .it button:disabled{opacity:.4;cursor:default}
+.zoo-list{margin-top:10px;font-size:14px;color:var(--soft)}
+
 /* ============ wandering buddy ============ */
 .buddy{position:fixed;left:0;top:0;z-index:15;cursor:pointer;will-change:transform;-webkit-user-select:none;user-select:none}
 .buddy.doll{width:54px;height:74px}
@@ -744,9 +799,11 @@ details.past summary{cursor:pointer;color:var(--soft);font-weight:700;font-size:
 
 <button id="jarBtn" class="topbtn" hidden aria-label="Love jar">🫙<span class="badge" id="jarBadge" hidden></span></button>
 <button id="petBtn" class="topbtn" hidden aria-label="Capy pet"><span id="petIcon"></span><span class="pbar"><i id="petMini"></i></span><span class="badge" id="petBadge" hidden>🥺</span></button>
+<button id="zooBtn" class="topbtn" hidden aria-label="Zoo">🦁</button>
 <button id="bell" hidden aria-label="Notifications" aria-expanded="false" aria-controls="notifPanel">🔔<span class="badge" id="bellBadge" hidden></span></button>
 <div id="notifPanel" hidden role="dialog" aria-label="Notifications"><h3>what's new</h3><div id="notifList"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="surprise" hidden role="dialog" aria-modal="true" aria-label="A message for you"></div>
 <div id="veil"></div>
 <div id="sheet" role="dialog" aria-modal="true">
   <div class="grab"></div>
@@ -804,7 +861,7 @@ const ms = d => d?.createdAt?.toMillis ? d.createdAt.toMillis() : Date.now();
 const fmtDate = s => { if(!s) return ""; const d = new Date(s + "T00:00:00"); return isNaN(d) ? s : d.toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); };
 
 let me = null;
-const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], locations:[], lists:[], complaints:[], jar:[], pet:{}, home:{} };
+const S = { memories:[], photos:[], places:[], letters:[], checkins:[], answers:[], voices:[], thoughts:[], locations:[], lists:[], complaints:[], jar:[], pet:{}, zoo:{}, surprises:{}, home:{} };
 let unsubs = [];
 
 function sprinkle(el, n){
@@ -830,7 +887,7 @@ onAuthStateChanged(auth, user => {
     const g=$("#gate");
     if(!g.hidden && !$("#gateForm").hidden){ g.classList.add("leaving"); setTimeout(()=>{ g.hidden=true; g.classList.remove("leaving"); },900); }
     else g.hidden = true;
-    $("#fab").hidden = false; $("#bell").hidden = false; $("#jarBtn").hidden = false; $("#petBtn").hidden = false; prevUnread = -1;
+    $("#fab").hidden = false; $("#bell").hidden = false; $("#jarBtn").hidden = false; $("#petBtn").hidden = false; $("#zooBtn").hidden = false; prevUnread = -1;
     if(buddies[0].el.hidden) buddies.forEach(b=>b.start());
     startListening();
     renderHome(); renderThoughts(); renderAnswers(); renderVoices(); renderWhere(); renderLists(); renderComplaints();
@@ -838,7 +895,7 @@ onAuthStateChanged(auth, user => {
     me = null;
     $("#gate").hidden = false;
     $("#gateForm").hidden = false;
-    $("#fab").hidden = true; $("#bell").hidden = true; $("#jarBtn").hidden = true; $("#petBtn").hidden = true; if(notifOpen) toggleNotifs(false);
+    $("#fab").hidden = true; $("#bell").hidden = true; $("#jarBtn").hidden = true; $("#petBtn").hidden = true; $("#zooBtn").hidden = true; if(notifOpen) toggleNotifs(false);
   }
 });
 
@@ -888,8 +945,16 @@ function startListening(){
   unsubs.push(onSnapshot(doc(db,"meta","pet"), snap=>{
     S.pet = snap.exists() ? snap.data() : {};
     if(snap.exists()) maybeFixPet();
-    renderPetBtn(); if(panel==="pet") renderPet(); renderNotifs();
+    renderPetBtn(); if(panel==="pet") renderPet(); if(panel==="zoo" && zooTab==="adopt") renderZoo(); renderNotifs();
   }, err=>console.error("pet", err)));
+  unsubs.push(onSnapshot(doc(db,"meta","zoo"), snap=>{
+    S.zoo = snap.exists() ? snap.data() : {};
+    if(panel==="zoo") renderZoo(); renderNotifs();
+  }, err=>console.error("zoo", err)));
+  unsubs.push(onSnapshot(doc(db,"meta","surprises"), snap=>{
+    S.surprises = snap.exists() ? snap.data() : {};
+    S.surprisesLoaded = true; checkSurprise();
+  }, err=>console.error("surprises", err)));
   unsubs.push(onSnapshot(doc(db,"meta","home"), snap=>{
     S.home = snap.exists() ? snap.data() : {};
     renderHome(); renderNotifs();
@@ -1434,6 +1499,11 @@ function buildFeed(){
   for(const l of S.locations) add(l.by, tms(l.updatedAt), "📍", `<b>${esc(nm(l.by,l.byName))}</b> updated ${l.by===me.uid?"your":"their"} location${l.city?` (${esc(cut(l.city,30))})`:""}`, {tab:"where"});
   for(const n of S.jar) add(n.by, ms(n), "🫙", `<b>${esc(nm(n.by,n.byName))}</b> put a note in the love jar`, {jar:true});
   const pl = S.pet?.last; if(pl && pl.by) add(pl.by, tms(pl.at), PET_ACTS[pl.type]?.e || "🦫", `<b>${esc(nm(pl.by,pl.byName))}</b> ${PET_ACTS[pl.type]?.past || "visited"} ${esc(petName())}${pl.type==="game" && pl.score ? ` and scored ${pl.score}` : ""}${pl.type==="buy" && pl.item ? ` (${SHOP.find(x=>x.k===pl.item)?.e || ""})` : ""}`, {pet:true});
+  const zl = S.zoo?.last;
+  if(zl && zl.by){
+    if(zl.type==="adopt") add(zl.by, tms(zl.at), zooAnimal(zl.k)?.e || "🐾", `<b>${esc(nm(zl.by,zl.byName))}</b> adopted ${esc(zooAnimal(zl.k)?.l.toLowerCase() || "an animal")} named ${esc(zl.name)}`, {zoo:true});
+    else if(zl.type==="collect") add(zl.by, tms(zl.at), "🪙", `<b>${esc(nm(zl.by,zl.byName))}</b> collected ${zl.amt} 🪙 from the zoo`, {zoo:true});
+  }
   const h = S.home || {};
   if(h.note && h.noteBy) add(h.noteBy, tms(h.noteAt), "✏️", `<b>${esc(nm(h.noteBy,h.noteByName))}</b> left a new note`, {tab:"home"});
   for(const [uid, e] of Object.entries(h.reactions||{})) if(e) add(uid, tms(h.reactAt?.[uid]), "😊", `<b>${esc(nm(uid, h.reactNames?.[uid]))}</b> reacted ${esc(e)} to the note`, {tab:"home"});
@@ -1480,6 +1550,7 @@ $("#notifList").addEventListener("click", e=>{
   toggleNotifs(false);
   if(ev.go.jar) return openJar();
   if(ev.go.pet) return openPet();
+  if(ev.go.zoo) return openZoo();
   document.querySelector(`nav button[data-tab="${ev.go.tab}"]`)?.click();
   if(ev.go.sub==="voice") document.querySelector('#lseg button[data-lview="voice"]')?.click();
   if(ev.go.tab==="letters" && !ev.go.sub) document.querySelector('#lseg button[data-lview="letters"]')?.click();
@@ -1892,6 +1963,184 @@ $("#sheetContent").addEventListener("click", async e=>{
 });
 $("#sheetContent").addEventListener("keydown", e=>{ if(panel==="jar" && e.target.closest("#jarSvg") && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); pullNote(); } });
 
+/* ============ one-time surprise letters ============ */
+// Each one shows ONCE to the person it's for, any time after "after" (their own local time).
+const SURPRISES = [
+  { id:"gm-2026-10-08", to:"beby", after:new Date(2026, 9, 8, 8, 0, 0),
+    teaser:"beby, i want u to read this 💌",
+    body:"Good morning sweetheart, hpe u slept very well ytd. hope u feel better, as i want u to be healthy and happy as thts wht matters to me. ik u been down and stuff as theres so much u wanna do but ur getting limited. but dont ever lose hope or give up okay, just tell urself to give one more day every single day. dont ever think tht ur not good or worth smtg, u are as talented as anybody and u work as hard as u can ady. okay beby? take good care of urself for me while i cant physically take care of u rn. i love u from heaven to earth aight? hv a wonderful day ahead beby. i love u. MUAH",
+    sign:"– Oscar 💛" }
+];
+let surpriseShowing = false;
+function checkSurprise(force){
+  if(!me || surpriseShowing || !S.surprisesLoaded) return;
+  const seen = S.surprises.seen || {};
+  const preview = location.hash === "#preview";
+  const sp = SURPRISES.find(x => (preview && me.name !== x.to) || (x.to === me.name && Date.now() >= x.after.getTime() && !seen[x.id]));
+  if(!sp) return;
+  if(!$("#gate").hidden){ setTimeout(()=>checkSurprise(force), 1200); return; }
+  showSurprise(sp, preview && me.name !== sp.to);
+}
+function showSurprise(sp, isPreview){
+  surpriseShowing = true;
+  const box = $("#surprise");
+  box.innerHTML = `<div class="stars" id="spStars"></div><div class="sp-box">
+    <p class="sp-teaser">${esc(sp.teaser)}</p>
+    <button class="sp-env" id="spEnv" aria-label="Open the letter"><span class="body"></span><span class="flap"></span><span class="seal">💌</span></button>
+    <p class="sp-hint">tap to open${isPreview ? " · (preview, won't count as read)" : ""}</p></div>`;
+  sprinkle($("#spStars"), 60);
+  box.hidden = false;
+  $("#spEnv").focus();
+  $("#spEnv").addEventListener("click", async ()=>{
+    $("#spEnv").classList.add("open");
+    if(!isPreview){
+      try{ await setDoc(doc(db,"meta","surprises"), { seen:{ [sp.id]: true }, seenAt:{ [sp.id]: serverTimestamp() } }, {merge:true}); }catch(err){ console.error(err); }
+    }
+    setTimeout(()=>{
+      box.querySelector(".sp-box").innerHTML = `<div class="sp-letter"><p>${esc(sp.body)}</p><p class="sign">${esc(sp.sign)}</p></div><button class="sp-close" id="spClose">okay 💛</button>`;
+      floatHearts(26);
+      $("#spClose").addEventListener("click", ()=>{ box.hidden = true; box.innerHTML = ""; surpriseShowing = false; });
+    }, 700);
+  }, { once:true });
+}
+function floatHearts(n){
+  const hs = ["💛","💗","💕","🤍","💖"];
+  for(let i=0;i<n;i++){
+    const h = document.createElement("span"); h.className = "sp-heart"; h.textContent = hs[i%hs.length];
+    h.style.left = (Math.random()*96) + "vw"; h.style.animationDuration = (4 + Math.random()*4) + "s"; h.style.animationDelay = (Math.random()*3) + "s";
+    document.body.appendChild(h); setTimeout(()=>h.remove(), 12000);
+  }
+}
+setInterval(()=>checkSurprise(), 60000);
+addEventListener("hashchange", ()=>checkSurprise(true));
+
+/* ============ zoo ============ */
+const ZOO_ANIMALS = [
+  { k:"duck",     e:"🦆", l:"Duck",      cost:0,   lines:["quack!","waddle waddle","bread pls"] },
+  { k:"penguin",  e:"🐧", l:"Penguin",   cost:25,  lines:["it's too hot here","*slides*","noot noot"] },
+  { k:"bunny",    e:"🐰", l:"Bunny",     cost:25,  lines:["carrot?","*hop hop*","binky!"] },
+  { k:"turtle",   e:"🐢", l:"Turtle",    cost:30,  lines:["slow and steady","…hi","*hides*"] },
+  { k:"otter",    e:"🦦", l:"Otter",     cost:40,  lines:["hold my paw?","found a rock for u","*floats*"] },
+  { k:"fox",      e:"🦊", l:"Fox",       cost:45,  lines:["what does the fox say","*sneaky*","hehe"] },
+  { k:"flamingo", e:"🦩", l:"Flamingo",  cost:50,  lines:["one leg is enough","pink is my colour","✨"] },
+  { k:"seal",     e:"🦭", l:"Seal",      cost:55,  lines:["arf arf!","*claps*","fish??"] },
+  { k:"panda",    e:"🐼", l:"Panda",     cost:60,  lines:["bamboo time","*rolls over*","nap?"] },
+  { k:"koala",    e:"🐨", l:"Koala",     cost:60,  lines:["sleepy…","hug?","*clings*"] },
+  { k:"sloth",    e:"🦥", l:"Sloth",     cost:70,  lines:["h…i…","no rush","zzz"] },
+  { k:"giraffe",  e:"🦒", l:"Giraffe",   cost:80,  lines:["nice view up here","leaves pls","*tall*"] },
+  { k:"elephant", e:"🐘", l:"Elephant",  cost:90,  lines:["*trumpet*","i never forget u","splash!"] },
+  { k:"lion",     e:"🦁", l:"Lion",      cost:120, lines:["rawr (gently)","king of this zoo","*yawns*"] },
+  { k:"unicorn",  e:"🦄", l:"Unicorn",   cost:200, lines:["✨ magic ✨","i'm legendary","believe in urself"] }
+];
+const zooAnimal = k => ZOO_ANIMALS.find(a=>a.k===k);
+const zooList = () => (S.zoo && S.zoo.animals) || [];
+let zooRAF = null, zooTimers = [], zooTab = "zoo";
+function zooIncome(){ return 2 + zooList().length; }
+function stopZoo(){ zooTimers.forEach(clearTimeout); zooTimers = []; }
+function renderZoo(){
+  stopZoo();
+  const coins = petCoins(), list = zooList(), owned = new Set(list.map(a=>a.k));
+  const collected = S.zoo && S.zoo.lastCollect === todayKey();
+  const hat = hatOf();
+  const animalsHTML = [
+    `<div class="za capy" data-z="capy"><span class="say"></span><span class="face">${capySVG()}${hat.k?`<span class="hat">${hat.e}</span>`:""}</span><span class="nm">${esc(petName())}</span></div>`,
+    ...list.map((a,i)=>{ const def = zooAnimal(a.k); if(!def) return ""; return `<div class="za" data-z="${i}"><span class="say"></span><span class="em"><span class="face">${def.e}</span></span><span class="nm">${esc(a.name || def.l)}</span></div>`; })
+  ].join("");
+  const body = zooTab === "zoo" ? `
+    <div class="zoo-scene" id="zooScene">
+      <span class="cloud" style="animation-delay:-8s">☁️</span><span class="cloud" style="top:9%;animation-delay:-26s;font-size:24px">☁️</span>
+      <span class="deco" style="left:3%;top:24%">🌳</span><span class="deco" style="left:82%;top:23%">🌳</span><span class="deco" style="left:44%;top:25%;font-size:24px">🌷</span>
+      <span class="deco" style="left:6%;bottom:6%;font-size:24px">🌼</span><span class="deco" style="left:30%;bottom:3%;font-size:22px">🍀</span>
+      <div class="pond"></div>
+      ${animalsHTML}
+    </div>
+    <div class="zoo-bar">
+      <button class="btn primary" data-zoo="collect" ${collected?"disabled":""}>${collected ? "🪙 Collected today" : `🪙 Collect zoo income (+${zooIncome()})`}</button>
+      <button class="btn" data-zoo="adopt">🐾 Adopt</button>
+    </div>
+    <div class="zoo-list">${list.length ? `${list.length+1} animals live here · tap them!` : "Just Mochi for now. Adopt the duck for free!"}</div>`
+  : `<div class="adopt">${ZOO_ANIMALS.map(a=>{ const has = owned.has(a.k); return `<div class="it"><div class="em">${a.e}</div><b>${a.l}</b><button data-adopt="${a.k}" ${has||coins<a.cost?"disabled":""}>${has ? "lives here ✓" : a.cost ? a.cost+" 🪙" : "free"}</button></div>`; }).join("")}</div>
+     <div class="sheet-actions"><button class="btn" data-zoo="back">Back to the zoo</button></div>`;
+  $("#sheetContent").innerHTML = `<div>
+    <div class="zoo-top"><span class="zoo-sign">beby & oscar's zoo</span><span class="coin-chip">🪙 ${coins}</span></div>
+    ${body}
+    <div class="sheet-actions"><button class="btn" data-close>Close</button></div></div>`;
+  if(zooTab === "zoo") startZooWalk();
+}
+function startZooWalk(){
+  const scene = $("#zooScene"); if(!scene) return;
+  const still2 = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  scene.querySelectorAll(".za").forEach((el, i)=>{
+    const W = () => scene.clientWidth || 360, H = () => scene.clientHeight || 400;
+    let x = 20 + Math.random()*(W()-100), y = H()*0.3 + Math.random()*(H()*0.55);
+    const place = (secs)=>{ el.style.transition = secs ? `transform ${secs}s linear` : "none"; el.style.transform = `translate(${x}px, ${y}px)`; el.style.zIndex = Math.round(y); };
+    place(0);
+    if(still2) return;
+    const step = ()=>{
+      const nx = 10 + Math.random()*(W()-90), ny = H()*0.28 + Math.random()*(H()*0.58);
+      const secs = Math.max(1.4, Math.hypot(nx-x, ny-y)/ (el.classList.contains("capy") ? 26 : 34));
+      el.classList.toggle("right", nx > x); el.classList.add("walk");
+      x = nx; y = ny; place(secs);
+      zooTimers.push(setTimeout(()=>{ el.classList.remove("walk"); zooTimers.push(setTimeout(step, 1200 + Math.random()*3500)); }, secs*1000));
+    };
+    zooTimers.push(setTimeout(step, 300 + i*250));
+  });
+}
+function zooSay(el){
+  const z = el.dataset.z, say = el.querySelector(".say");
+  let lines;
+  if(z === "capy") lines = BOOPS;
+  else { const a = zooList()[+z], def = a && zooAnimal(a.k); lines = def ? def.lines : ["hi!"]; }
+  say.textContent = lines[Math.floor(Math.random()*lines.length)];
+  say.classList.add("on"); setTimeout(()=>say.classList.remove("on"), 1500);
+  const em = el.querySelector(".em, .face"); if(em){ em.animate([{transform:"translateY(0)"},{transform:"translateY(-14px)"},{transform:"translateY(0)"}], {duration:420, easing:"ease-out"}); }
+}
+async function adoptAnimal(k){
+  const def = zooAnimal(k); if(!def) return;
+  const raw = prompt(`Name your ${def.l.toLowerCase()} ${def.e}:`, def.l); if(raw === null) return;
+  const name = (raw.trim() || def.l).slice(0, 16);
+  try{
+    await runTransaction(db, async tx=>{
+      const pref = doc(db,"meta","pet"), zref = doc(db,"meta","zoo");
+      const ps = await tx.get(pref), zs = await tx.get(zref);
+      const pd = ps.exists() ? ps.data() : {}, zd = zs.exists() ? zs.data() : {};
+      const animals = zd.animals || [];
+      if(animals.some(a=>a.k===k)) throw new Error("owned");
+      if((pd.coins||0) < def.cost) throw new Error("poor");
+      if(def.cost) tx.set(pref, { coins:(pd.coins||0) - def.cost }, {merge:true});
+      tx.set(zref, { animals:[...animals, { k, name, by:me.uid, byName:me.name, at:Date.now() }], last:{ type:"adopt", k, name, by:me.uid, byName:me.name, at:serverTimestamp() } }, {merge:true});
+    });
+    zooTab = "zoo"; if(panel==="zoo") renderZoo(); confetti(); toast(`${def.e} ${name} moved into the zoo!`);
+  }catch(err){
+    toast(err.message==="poor" ? "Not enough 🪙. Play Capy Catch or collect zoo income!" : err.message==="owned" ? "Already lives here!" : "Couldn't adopt. Check your internet.");
+  }
+}
+async function collectZoo(){
+  const amt = zooIncome();
+  try{
+    let got = 0;
+    await runTransaction(db, async tx=>{
+      const zref = doc(db,"meta","zoo"), zs = await tx.get(zref), zd = zs.exists() ? zs.data() : {};
+      if(zd.lastCollect === todayKey()) throw new Error("done");
+      got = 2 + (zd.animals||[]).length;
+      tx.set(zref, { lastCollect: todayKey(), last:{ type:"collect", amt:got, by:me.uid, byName:me.name, at:serverTimestamp() } }, {merge:true});
+    });
+    await setDoc(doc(db,"meta","pet"), { coins: increment(got || amt) }, {merge:true});
+    toast(`🪙 +${got || amt} from the zoo!`);
+  }catch(err){ toast(err.message==="done" ? "Already collected today!" : "Couldn't collect. Check your internet."); }
+}
+function openZoo(){ panel = "zoo"; zooTab = "zoo"; openSheet(""); renderZoo(); }
+$("#zooBtn").addEventListener("click", openZoo);
+$("#sheetContent").addEventListener("click", e=>{
+  if(panel !== "zoo") return;
+  const za = e.target.closest(".za"); if(za) return zooSay(za);
+  const ad = e.target.closest("[data-adopt]"); if(ad && !ad.disabled) return adoptAnimal(ad.dataset.adopt);
+  const b = e.target.closest("[data-zoo]"); if(!b || b.disabled) return;
+  if(b.dataset.zoo === "adopt"){ zooTab = "adopt"; renderZoo(); }
+  else if(b.dataset.zoo === "back"){ zooTab = "zoo"; renderZoo(); }
+  else if(b.dataset.zoo === "collect") collectZoo();
+});
+
 /* ============ daily check-ins ============ */
 const pad = n => String(n).padStart(2,"0");
 const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -2007,7 +2256,7 @@ function openSheet(html){
   const f = $("#sheetContent").querySelector("input,textarea,button"); if(f) f.focus();
 }
 function closeSheet(){
-  stopRec(); stopGame(); panel = null;
+  stopRec(); stopGame(); stopZoo(); panel = null;
   $("#veil").classList.remove("on"); $("#sheet").classList.remove("on");
   if(lastFocus) lastFocus.focus();
 }
